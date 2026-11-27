@@ -12,6 +12,15 @@ Testing leyó AGENTS.md y publicó `agents/testing/DIRECTRICES.md` antes de la i
 - Última compilación de producción: **12/12 E2E aprobados en 17,3 segundos**, incluyendo login real de Supabase, cookies HttpOnly/SameSite, sesión conservada al recargar y acceso denegado tras logout. La traza se desactiva en la prueba de login para evitar guardar su contraseña en un artefacto.
 - QA visual de las capturas actualizadas en escritorio y móvil: barra lateral corregida, tipografía legible y sin desbordamiento horizontal de página en las cinco vistas. Capturas locales en `.local/overview-*.png`, `.local/reports-*.png` y `.local/completed-*.png`.
 
+## Verificación independiente en GitHub Actions
+
+El commit `3ca806bc488e99278d333bbadf04299bbb81b439` superó la [ejecución de CI](https://github.com/Chemi90/partepro/actions/runs/45973152424) con ambos trabajos correctos:
+
+- [Aplicación](https://github.com/Chemi90/partepro/actions/runs/45973152424/job/140418261641): instalación limpia, auditoría con 0 vulnerabilidades notificadas, typecheck, 44 pruebas unitarias, build de producción y 11 E2E. La prueba de login conectado se omite en ese job porque no dispone de credenciales locales; sí se ejecutó y aprobó en la verificación local descrita arriba.
+- [Base de datos](https://github.com/Chemi90/partepro/actions/runs/45973152424/job/140418261018): Supabase efímero inicializado desde cero con las migraciones del repositorio; 16/16 comprobaciones de seguridad aprobadas.
+
+No se necesitaron modificaciones ni excepciones para superar esta ejecución. Estos enlaces verifican el commit indicado, no cambios futuros.
+
 ## Hallazgos y correcciones
 
 ### SEC-01 — Medio — Los intentos fallidos no consumían el límite de mutaciones

@@ -4,6 +4,10 @@ Gestión de mantenimiento para equipos que trabajan dentro y fuera de la oficina
 
 **Stack:** Next.js 16.4.6 · React 19 · TypeScript estricto · Supabase Auth/Postgres · Zod · Vitest · Playwright.
 
+![Panel de PartePro con datos ficticios](docs/images/partepro-desktop.png)
+
+[Verificación en GitHub Actions](https://github.com/Chemi90/partepro/actions/workflows/verify.yml): pruebas de aplicación y aislamiento en una instancia Supabase efímera.
+
 ## Probar la aplicación
 
 Requiere Node.js 22 o 24 y npm.
