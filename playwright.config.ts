@@ -1,6 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+import { baseURL, isRemote } from "./tests/support/target";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -13,7 +12,7 @@ export default defineConfig({
     baseURL,
     locale: "es-ES",
     timezoneId: "Europe/Madrid",
-    trace: "retain-on-failure",
+    trace: isRemote ? "off" : "retain-on-failure",
     screenshot: "only-on-failure",
   },
   projects: [

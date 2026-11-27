@@ -1,5 +1,17 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+import { artifactsDirectory, isRemote } from "../support/target";
+
+test.beforeEach(async ({ page }) => {
+  await mkdir(artifactsDirectory, { recursive: true });
+  if (isRemote) {
+    await page.route("**/api/workspace", async (route) => {
+      if (route.request().method() === "GET") return route.continue();
+      await route.abort();
+      throw new Error("The browser demo must never send a business mutation to production.");
+    });
+  }
+});
 
 async function navigate(page: Page, label: string) {
   const menu = page.getByRole("button", { name: "Abrir menú", exact: true });
@@ -18,14 +30,13 @@ test("resumen y cinco vistas accesibles sin desbordamiento", async ({ page }, te
   await expect(page.getByRole("heading", { name: "Todo bajo control." })).toBeVisible();
   await expect(page.getByText("Modo demo", { exact: true })).toBeVisible();
   await noOverflow(page);
-  await mkdir(".local", { recursive: true });
-  await page.screenshot({ animations: "disabled", path: `.local/overview-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ animations: "disabled", path: `${artifactsDirectory}/overview-${testInfo.project.name}.png`, fullPage: true });
   for (const label of ["Solicitudes", "Presupuestos", "Agenda", "Partes de trabajo"]) {
     await navigate(page, label);
     await expect(page.getByRole("heading", { name: label, exact: true })).toBeVisible();
     await noOverflow(page);
     const filenames: Record<string, string> = { Solicitudes: "requests", Presupuestos: "quotes", Agenda: "calendar", "Partes de trabajo": "reports" };
-    await page.screenshot({ animations: "disabled", path: `.local/${filenames[label]}-${testInfo.project.name}.png`, fullPage: true });
+    await page.screenshot({ animations: "disabled", path: `${artifactsDirectory}/${filenames[label]}-${testInfo.project.name}.png`, fullPage: true });
   }
   expect(errors).toEqual([]);
 });
@@ -40,7 +51,7 @@ test("recorrido completo de solicitud a parte finalizado con persistencia de pes
   await page.getByLabel("¿Qué necesita el cliente?", { exact: true }).fill(title);
   await page.getByLabel("Descripción", { exact: true }).fill(description);
   await page.getByRole("combobox", { name: "Prioridad", exact: true }).selectOption("urgent");
-  await page.screenshot({ animations: "disabled", path: `.local/request-form-${testInfo.project.name}.png` });
+  await page.screenshot({ animations: "disabled", path: `${artifactsDirectory}/request-form-${testInfo.project.name}.png` });
   await page.getByRole("button", { name: "Guardar solicitud", exact: true }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
 
@@ -51,7 +62,7 @@ test("recorrido completo de solicitud a parte finalizado con persistencia de pes
   await page.getByRole("button", { name: "Preparar presupuesto", exact: true }).click();
   await page.getByLabel("Cantidad 1", { exact: true }).fill("2");
   await expect(page.getByText("108,90", { exact: false })).toBeVisible();
-  await page.screenshot({ animations: "disabled", path: `.local/quote-form-${testInfo.project.name}.png` });
+  await page.screenshot({ animations: "disabled", path: `${artifactsDirectory}/quote-form-${testInfo.project.name}.png` });
   await page.getByRole("button", { name: "Guardar presupuesto", exact: true }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
 
@@ -93,7 +104,7 @@ test("recorrido completo de solicitud a parte finalizado con persistencia de pes
   await expect(page.getByText(report, { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Finalizar parte", exact: true })).toHaveCount(0);
   await noOverflow(page);
-  await page.screenshot({ animations: "disabled", path: `.local/completed-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ animations: "disabled", path: `${artifactsDirectory}/completed-${testInfo.project.name}.png`, fullPage: true });
 });
 
 test("demo reiniciable y diálogo operable con teclado", async ({ page }) => {

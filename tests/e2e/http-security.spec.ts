@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { baseURL, isRemote } from "../support/target";
 
 test.describe("HTTP: denegación por defecto", () => {
   test("una lectura sin sesión no devuelve el espacio de trabajo", async ({ request }) => {
     const response = await request.get("/api/workspace");
-    expect([401, 503]).toContain(response.status());
+    expect(isRemote ? [401] : [401, 503]).toContain(response.status());
     const body: unknown = await response.json();
     expect(body).not.toHaveProperty("workspace");
     expect(response.headers()["cache-control"]).toContain("no-store");
@@ -26,6 +27,12 @@ test.describe("HTTP: denegación por defecto", () => {
   test("página pública incluye políticas de seguridad", async ({ request }) => {
     const response = await request.get("/");
     expect(response.ok()).toBeTruthy();
+    if (isRemote) {
+      expect(response.status()).toBe(200);
+      expect(new URL(response.url()).origin).toBe(baseURL);
+      expect(new URL(response.url()).pathname).toBe("/");
+      expect(response.headers()["strict-transport-security"]).toMatch(/max-age=[1-9]\d*/);
+    }
     const headers = response.headers();
     expect(headers["x-content-type-options"]).toBe("nosniff");
     expect(headers["referrer-policy"]).toBeTruthy();
@@ -33,5 +40,12 @@ test.describe("HTTP: denegación por defecto", () => {
     expect(headers["content-security-policy"]).toContain("object-src 'none'");
     expect(headers["content-security-policy"]).not.toContain("'unsafe-eval'");
     expect(headers["content-security-policy"]).toMatch(/script-src[^;]*'nonce-/);
+    if (isRemote) {
+      const repeated = await request.get("/");
+      const nonce = headers["content-security-policy"].match(/'nonce-([^']+)'/)?.[1];
+      const nextNonce = repeated.headers()["content-security-policy"]?.match(/'nonce-([^']+)'/)?.[1];
+      expect(nextNonce).toBeTruthy();
+      expect(nextNonce).not.toBe(nonce);
+    }
   });
 });

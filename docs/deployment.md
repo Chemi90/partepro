@@ -17,7 +17,24 @@ Importar este repositorio en Vercel, preset Next.js, Node.js 24, directorio raí
 
 Google Calendar es opcional: GOOGLE_CALENDAR_ID, GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY y CALENDAR_ORGANIZATION_ID. Usar un calendario de pruebas dedicado. No pegar claves en el repositorio, issues, logs o conversaciones.
 
-Para cargar los datos remotos, preparar temporalmente `.env.local` con el proyecto de demostración y `ALLOW_REMOTE_DEMO_SEED=true`, ejecutar `npm run db:seed` y conservar las credenciales generadas de forma privada. No usar un proyecto con información de clientes reales.
+Para cargar los datos remotos, conservar `.env.local` y las credenciales locales sin cambios. Crear el archivo privado `.local/production.env`, excluido de Git, con las variables del proyecto remoto dedicado y estas dos opciones:
+
+```dotenv
+ALLOW_REMOTE_DEMO_SEED=true
+DEMO_ACCESS_FILE=.local/production-demo-access.json
+```
+
+Desde la raíz del repositorio, en una sesión de terminal sin variables Supabase heredadas de otro entorno, ejecutar:
+
+```powershell
+node --env-file=.local/production.env --import tsx scripts/seed-demo.ts
+```
+
+No colocar secretos en argumentos de línea de comandos ni imprimir el contenido de los archivos. Node da prioridad a las variables ya presentes en el proceso sobre las del archivo; comprobar el entorno antes de ejecutar el comando.
+
+El seed escribe la contraseña generada y `supabaseUrl` en `.local/production-demo-access.json`, sin mostrarlas en consola. `DEMO_ACCESS_FILE` se resuelve respecto al repositorio, solo permite archivos dentro de `.local` y rechaza escapes y enlaces de directorio/archivo. Si un archivo existente identifica otro proyecto, la operación se detiene. Un archivo antiguo sin `supabaseUrl` tampoco se reutiliza para un proyecto remoto.
+
+El comando local `npm run db:seed` conserva como destino predeterminado `.local/demo-access.json`. Si el usuario ya existe, el seed mantiene su contraseña. Conservar los archivos de acceso de forma privada y no usar un proyecto con información de clientes reales.
 
 ## Verificación antes de enviar
 

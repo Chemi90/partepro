@@ -1,13 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { existsSync, readFileSync } from "node:fs";
-import { z } from "zod";
+import { isRemote, loadEvaluationAccess, loadRemoteAccess } from "../support/target";
 
-const accessPath = ".local/demo-access.json";
-const access = existsSync(accessPath)
-  ? z.object({ email: z.string().email(), password: z.string().min(12) }).parse(JSON.parse(readFileSync(accessPath, "utf8")))
-  : null;
+const access = loadEvaluationAccess();
 
-test.use({ trace: "off" }); // Auth request bodies contain a local test password.
+test.use({ trace: "off" }); // Auth request bodies contain a private test password.
 
 test("sesión Supabase: login, cookie protegida, recarga y logout", async ({ page, context }) => {
   test.skip(!access, "Requiere el seed local de demostración y Supabase activo.");
@@ -25,13 +21,14 @@ test("sesión Supabase: login, cookie protegida, recarga y logout", async ({ pag
   for (const flags of sessionFlags) {
     expect(flags.httpOnly).toBe(true);
     expect(flags.sameSite).toBe("Lax");
-    if (page.url().startsWith("https:")) expect(flags.secure).toBe(true);
+    if (isRemote || page.url().startsWith("https:")) expect(flags.secure).toBe(true);
   }
 
   const authorized = await page.request.get("/api/workspace");
   expect(authorized.status()).toBe(200);
   const data: unknown = await authorized.json();
   expect(data).toHaveProperty("workspace");
+  if (isRemote) expect(data).toHaveProperty("role", loadRemoteAccess().expectedRole);
   await page.reload();
   await expect(page.getByText("Cuenta conectada", { exact: true }).first()).toBeVisible();
   await page.getByTitle("Cerrar sesión", { exact: true }).click();

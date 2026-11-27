@@ -70,3 +70,22 @@ Las pruebas llaman directamente a Supabase, además de la interfaz de la aplicac
 
 ## Límites de las evidencias
 Las políticas RLS y sesiones se prueban contra Supabase local. Esto no certifica una futura instancia alojada ni su configuración operativa. El despliegue público, integración real con Google Calendar y medidas del proveedor requieren su propia comprobación. Las pruebas no garantizan ausencia de vulnerabilidades ni sustituyen una auditoría profesional.
+
+## Preparación de la comprobación de producción
+
+Estado: **preparada, pendiente de origen público y autorización del proyecto ficticio dedicado**. No se han ejecutado las pruebas remotas. Tras adaptar la configuración se repitió la regresión local: **16/16 E2E en 43,0 segundos**, incluido login real local. Typecheck correcto. Se ejecutaron además seis comprobaciones sin red del selector de destino: loopback aceptado; remoto sin confirmación, confirmación distinta, HTTP, servidor externo no declarado y URL con credenciales rechazados.
+
+`tests/support/target.ts` separa los destinos. Para un origen remoto exige HTTPS, `PLAYWRIGHT_EXTERNAL_SERVER=1` y `PLAYWRIGHT_CONFIRMED_DEMO_ORIGIN` exactamente igual a `PLAYWRIGHT_BASE_URL`. El login remoto lee exclusivamente `.local/production-demo-access.json`; nunca recurre al acceso local. El manifiesto debe vincular el origen de la app con una URL canónica HTTPS de `*.supabase.co`, el UUID de organización y una clave pública. Las claves privilegiadas se rechazan. Los roles de las cuentas de evaluación se conservan como `dispatcher`.
+
+El manifiesto privado contiene `email`, `password`, `supabaseUrl`, `origin`, `organizationId`, `expectedRole` y `publishableKey`. Para las lecturas RLS añade `rls.technician` con `email`, `password`, `technicianId`, y `rls.otherOrganization` con `email`, `password`, `organizationId`, `expectedRole`. El técnico debe tener trabajo asignado y la primera organización otro trabajo ajeno; la segunda organización necesita al menos un cliente ficticio. Las identidades y filas se preparan por separado, nunca por el verificador.
+
+Una vez disponibles esas condiciones, con las tres variables de destino establecidas:
+
+```text
+npm run test:e2e
+node --import tsx tests/production/read-only.ts
+```
+
+En remoto, la suite exige acceso anónimo 401 (503 ya no se acepta), página pública 200 sin redirección de autenticación, HSTS, CSP con nonce distinto en peticiones separadas, cookies Secure/HttpOnly/SameSite y el rol esperado al iniciar sesión. Las trazas están desactivadas; las capturas del recorrido quedan en `.local/production/`. El flujo de negocio se ejecuta en la demo del navegador y bloquea cualquier intento de mutar `/api/workspace`.
+
+`tests/production/read-only.ts` comprueba cinco grupos: acceso anónimo a Data API/RPC, identidad y rol de cada fixture, aislamiento por organización en tablas, snapshots sin registros compartidos y lecturas de técnico limitadas a trabajos asignados. Su transporte solo permite GET a tablas y a `get_workspace`, más login/logout de sus propias sesiones; rechaza redirecciones. No acepta servicio privilegiado, no llama RPC de mutación, no crea fixtures ni limpia datos. No debe usarse el limpiador de `tests/database/security.mjs` contra una instancia remota.
