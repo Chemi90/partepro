@@ -34,3 +34,9 @@ Develop corrigió el pie recortado (UI-02), la restauración del foco al cerrar 
 ## Preparación de cuentas alojadas
 
 El usuario confirmó que dispone de cuentas de Vercel y Supabase. Orquestador comprobó que las CLI aún no estaban autenticadas e inició sus accesos oficiales, pendientes de la intervención del usuario. Develop separó el archivo de credenciales del seed remoto y añadió validación de destino para conservar el entorno local. Testing preparó comprobaciones remotas sin escrituras de negocio, vinculadas a un origen HTTPS explícito y a un manifiesto privado independiente. La regresión local pasó 16/16 en 43 segundos; las pruebas de producción siguen pendientes y no se han creado recursos alojados durante esta preparación.
+
+## Publicación y revisión de producción
+
+Tras completar el usuario las autorizaciones oficiales, Orquestador creó un proyecto separado en Supabase Free y PartePro en Vercel Hobby, aplicó las tres migraciones, configuró Auth y los secretos de servidor y publicó `https://partepro-three.vercel.app`. Los proyectos Supabase que ya tenía el usuario no se modificaron.
+
+Testing verificó la URL en contextos limpios de escritorio y móvil: 16/16 E2E y cinco grupos de aislamiento RLS aprobados. Corrigió una carrera del helper de navegación del test móvil tras una recarga, manteniendo los criterios y tiempos de espera. Orquestador activó SSL obligatorio en Postgres y comprobó además cinco mutaciones conectadas —solicitud, presupuesto, aceptación, planificación y cierre— con una lectura posterior que confirmó persistencia y logout con 401. Se documentaron los avisos del asesor de Supabase y se preparó un archivo privado de entrega; no se envió el formulario de candidatura.

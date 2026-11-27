@@ -4,6 +4,8 @@ Gestión de mantenimiento para equipos que trabajan dentro y fuera de la oficina
 
 **Stack:** Next.js 16.4.6 · React 19 · TypeScript estricto · Supabase Auth/Postgres · Zod · Vitest · Playwright.
 
+**App pública:** [partepro-three.vercel.app](https://partepro-three.vercel.app). Producción en Vercel Hobby y Supabase Free; acceso anónimo comprobado sin login de Vercel. La cuenta privada de evaluación permite probar la persistencia real; al abrir la web sin cuenta se muestra la demo por pestaña.
+
 ![Panel de PartePro con datos ficticios](docs/images/partepro-desktop.png)
 
 [Verificación en GitHub Actions](https://github.com/Chemi90/partepro/actions/workflows/verify.yml): pruebas de aplicación y aislamiento en una instancia Supabase efímera.

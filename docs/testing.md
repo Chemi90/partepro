@@ -3,6 +3,26 @@
 ## Estado inicial
 Testing leyó AGENTS.md y publicó `agents/testing/DIRECTRICES.md` antes de la implementación. Develop confirmó su lectura y acordó el contrato de dominio antes de las pruebas.
 
+## Producción verificada — 27 de noviembre de 2026
+
+Origen comprobado: **https://partepro-three.vercel.app**, en el proyecto nuevo de demostración y con autorización explícita. La batería se ejecutó con contextos de navegador nuevos, sin sesiones de Vercel ni cookies previas.
+
+- **16/16 E2E aprobados en 43,6 segundos**, sin omisiones: escritorio Chromium y Pixel 7 emulado; cinco vistas, contraste, teclado, formularios, flujo completo de la demo, descarga ICS y persistencia de pestaña tras recarga.
+- Página anónima **200**, conservando el origen y la ruta pública; API de datos anónima **401**, sin exponer el espacio de trabajo. Los POST de otro origen devuelven **403**. HSTS, CSP con nonce renovado y políticas de seguridad verificadas.
+- Login real de Supabase correcto con rol **dispatcher**, cookies **Secure, HttpOnly y SameSite=Lax**, sesión conservada al recargar y acceso a datos denegado después del logout.
+- **5/5 grupos RLS de solo lectura aprobados** sobre la instancia alojada (6,3 segundos): denegación anónima, identidades y roles declarados, aislamiento entre dos organizaciones en tablas, snapshots sin filas compartidas y técnico limitado a trabajos asignados y sus registros relacionados. La segunda organización contiene filas existentes: la prueba no depende de UUID ajenos inventados.
+- Capturas y reporte privados en `.local/production/`, con trazas desactivadas y sin registrar contraseñas ni tokens. Se inspeccionaron las capturas de resumen en escritorio y formulario móvil; presentación y controles completos.
+
+La primera ejecución obtuvo 15/16 por una carrera del propio helper de navegación: tras recargar en móvil comprobaba `isVisible()` antes de finalizar la carga y omitía abrir el menú. La captura mostraba el parte ya finalizado y persistido. Testing corrigió el helper para esperar la interfaz antes de decidir si abrir el menú; la repetición completa produjo el resultado anterior, sin aumentar tiempos ni relajar aserciones. Typecheck y `git diff --check` correctos tras esa corrección.
+
+Durante esta verificación no se crearon, modificaron ni borraron registros de negocio remotos. El recorrido de negocio fue la demo identificada del navegador; la comprobación conectada se limitó a login, lectura, recarga y logout. La persistencia de escrituras remotas exige su propia evidencia y no se deduce de esta batería.
+
+### Comprobación adicional de persistencia remota
+
+Después de esa batería, Orquestador ejecutó un recorrido separado mediante la API Next.js de producción, autenticado como el evaluador dispatcher. Se crearon y persistieron una solicitud ficticia, su presupuesto, aceptación, planificación y parte finalizado: cinco mutaciones autorizadas, sin llamadas administrativas para el recorrido. Una nueva lectura de `/api/workspace` confirmó solicitud y parte en estado `completed`; tras logout, el acceso devolvió 401. Se conserva un único registro explícito de «Verificación de producción · Datos ficticios», con IDs y resultado en `.local/production/connected-flow.json`. No se borraron registros.
+
+Antes de ese recorrido se activó y consultó SSL obligatorio para conexiones externas a Postgres: `currentConfig.database=true` y `appliedSuccessfully=true`. También se inspeccionaron HTML y siete scripts públicos sin encontrar la clave privilegiada ni la contraseña de evaluación. Los tres avisos del asesor de Supabase y sus motivos están documentados en `SECURITY.md`.
+
 ## Ejecuciones realizadas — 27 de noviembre de 2026
 
 - `npm test`: **44 pruebas unitarias aprobadas**. Contratos de entrada, importes, duplicados, transiciones, permisos de técnico, conflicto de agenda, inmutabilidad, CSRF, lectura limitada por bytes y errores sin información sensible.
@@ -69,11 +89,11 @@ La CLI de Supabase publicaba inicialmente los puertos Docker en todas las interf
 Las pruebas llaman directamente a Supabase, además de la interfaz de la aplicación: denegación anónima, usuario sin membresía, aislamiento entre empresas, datos visibles para técnico, prohibición de escrituras directas y escalada de rol, IDs de otra organización, validación SQL independiente, precio del catálogo, aceptación concurrente única, planificación concurrente sin solapes, cierre autorizado, límites de intentos y protección del RPC de login reservado al servicio.
 
 ## Límites de las evidencias
-Las políticas RLS y sesiones se prueban contra Supabase local. Esto no certifica una futura instancia alojada ni su configuración operativa. El despliegue público, integración real con Google Calendar y medidas del proveedor requieren su propia comprobación. Las pruebas no garantizan ausencia de vulnerabilidades ni sustituyen una auditoría profesional.
+Las pruebas locales incluyen operaciones de escritura y concurrencia; la verificación alojada descrita arriba cubre acceso público, sesión, lecturas con aislamiento y un recorrido adicional con escrituras persistidas. No certifica cambios posteriores, otros proyectos ni toda la configuración operativa del proveedor. La exportación ICS no equivale a una integración autenticada con Google Calendar. Las pruebas no garantizan ausencia de vulnerabilidades ni sustituyen una auditoría profesional.
 
 ## Preparación de la comprobación de producción
 
-Estado: **preparada, pendiente de origen público y autorización del proyecto ficticio dedicado**. No se han ejecutado las pruebas remotas. Tras adaptar la configuración se repitió la regresión local: **16/16 E2E en 43,0 segundos**, incluido login real local. Typecheck correcto. Se ejecutaron además seis comprobaciones sin red del selector de destino: loopback aceptado; remoto sin confirmación, confirmación distinta, HTTP, servidor externo no declarado y URL con credenciales rechazados.
+Preparación completada y aplicada en la ejecución remota descrita arriba. Antes de disponer de autorización y dominio se repitió la regresión local: **16/16 E2E en 43,0 segundos**, incluido login real local. Typecheck correcto. Se ejecutaron además seis comprobaciones sin red del selector de destino: loopback aceptado; remoto sin confirmación, confirmación distinta, HTTP, servidor externo no declarado y URL con credenciales rechazados.
 
 `tests/support/target.ts` separa los destinos. Para un origen remoto exige HTTPS, `PLAYWRIGHT_EXTERNAL_SERVER=1` y `PLAYWRIGHT_CONFIRMED_DEMO_ORIGIN` exactamente igual a `PLAYWRIGHT_BASE_URL`. El login remoto lee exclusivamente `.local/production-demo-access.json`; nunca recurre al acceso local. El manifiesto debe vincular el origen de la app con una URL canónica HTTPS de `*.supabase.co`, el UUID de organización y una clave pública. Las claves privilegiadas se rechazan. Los roles de las cuentas de evaluación se conservan como `dispatcher`.
 

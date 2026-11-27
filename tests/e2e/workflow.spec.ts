@@ -14,6 +14,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function navigate(page: Page, label: string) {
+  // Reload may return while the initial client-side workspace is still loading.
+  // Wait for the app before deciding whether the mobile navigation must open.
+  await expect(page.getByRole("button", { name: "Nueva solicitud", exact: true })).toBeVisible();
   const menu = page.getByRole("button", { name: "Abrir menú", exact: true });
   if (await menu.isVisible()) await menu.click();
   await page.getByRole("complementary", { name: "Navegación principal" }).getByRole("button", { name: new RegExp(`^${label}`) }).click();

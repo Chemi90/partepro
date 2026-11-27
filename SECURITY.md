@@ -8,7 +8,7 @@ No existe una garantía de invulnerabilidad. Este repositorio incluye controles 
 - El modo demo usa datos ficticios en `sessionStorage`; no puede escribir en una empresa remota. Cada pestaña mantiene su estado.
 - El modo conectado usa Supabase Auth. `getUser()` verifica la sesión en el servicio de identidad, y cada endpoint consulta la pertenencia vigente.
 - Un usuario pertenece a una empresa. Los roles owner y dispatcher gestionan su empresa; technician solo ve datos relacionados con sus trabajos y puede cerrar sus partes asignados.
-- Se desactiva registro público y acceso anónimo en la configuración local. Reproducir esos ajustes en el proyecto remoto.
+- Se desactiva registro público y acceso anónimo en la configuración local y en el proyecto remoto dedicado de la demo.
 
 ## Controles implementados
 
@@ -42,3 +42,11 @@ No publicar secretos, datos personales ni instrucciones con credenciales en issu
 ## Evidencia y límites de verificación
 
 Consultar `docs/testing.md` para ejecuciones y resultados observados. Probar localmente no acredita automáticamente la configuración de producción. La publicación exige comprobar las mismas rutas sin sesión, RLS, variables, HTTPS y acceso público en el destino real.
+
+## Estado del alojamiento verificado
+
+El 27 de noviembre de 2026 se comprobaron acceso anónimo, cookies de sesión, cabeceras, CSRF y aislamiento RLS en la producción indicada en `docs/deployment.md`. Se activó y confirmó SSL obligatorio para conexiones externas a Postgres. El HTML y los siete scripts referenciados por la página pública no contenían la clave privilegiada de Supabase ni la contraseña de evaluación.
+
+El asesor de Supabase mantiene dos avisos por funciones `SECURITY DEFINER` ejecutables por usuarios autenticados: `apply_workspace_action` y `consume_calendar_rate_limit`. El privilegio es intencional para escrituras transaccionales y contadores privados; ambas fijan `search_path=''`, derivan identidad y empresa de Auth y comprueban permisos. Las reglas de negocio se verifican también en la implementación privada del RPC. No se elimina el aviso debilitando esas validaciones ni concediendo escritura directa sobre las tablas.
+
+La protección de contraseñas filtradas de Supabase permanece desactivada: requiere [Pro o superior](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), mientras esta entrega usa Free. Las cuentas de prueba usan contraseñas aleatorias exclusivas y no hay registro público. Este límite se documenta; no se presenta el asesor como libre de avisos.

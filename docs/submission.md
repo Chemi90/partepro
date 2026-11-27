@@ -2,9 +2,9 @@
 
 La solicitud solo permite un envío: no enviar el formulario hasta completar la revisión de producción.
 
-- App: URL de producción pública, pendiente de registrar tras despliegue confirmado.
+- App de producción pública: https://partepro-three.vercel.app — verificada sin sesión de Vercel el 27 de noviembre de 2026.
 - Repositorio público: https://github.com/Chemi90/partepro
-- Cuenta de prueba: cuenta dispatcher de demostración; obtener credenciales de la preparación privada, nunca del README público.
+- Cuenta de prueba: cuenta dispatcher de demostración; las credenciales para copiar al formulario están en `.local/entrega-privada.txt`, excluido de Git. No publicar su contraseña en el README.
 - Documentación del equipo: AGENTS.md, agents/develop/DEVELOP.md y agents/testing/DIRECTRICES.md.
 
 ## Preguntas del formulario

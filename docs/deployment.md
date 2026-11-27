@@ -49,6 +49,14 @@ El comando local `npm run db:seed` conserva como destino predeterminado `.local/
 
 ## Estado
 
-Las URLs y el estado real del despliegue se registrarán cuando el proveedor confirme la publicación. La existencia de estas instrucciones no significa que el despliegue remoto se haya realizado.
+Publicado y verificado el 27 de noviembre de 2026:
 
-El 27 de noviembre se probó un despliegue temporal de Vercel desde una copia del repositorio sin archivos de entorno. El proveedor devolvió READY, pero la comprobación HTTP anónima y un navegador aislado recibieron 403. Por tanto, esa vista temporal **no se considera una entrega pública válida**. La publicación permanente y Supabase alojado siguen pendientes de conectar las cuentas de los proveedores.
+- Producción estable: https://partepro-three.vercel.app
+- Vercel: proyecto `partepro`, equipo `nebula-sur`, plan Hobby, Next.js y Node.js 24, funciones en Irlanda (`dub1`). Deployment `dpl_2uZNwi5A4C3pz2YS3JS4v2X1Li2D`, estado READY y destino production; autenticación de Vercel desactivada para esta demo pública.
+- Supabase: proyecto nuevo `partepro` (`qfwlreltnodhjxywqana`), plan Free, región `eu-west-1`. Migraciones 001–003 aplicadas; registro y usuarios anónimos desactivados, rotación de refresh tokens, longitud mínima 12 y SSL obligatorio para conexiones externas a Postgres comprobados.
+- Credenciales de servidor cargadas en el entorno Production de Vercel; la clave privilegiada se almacena como Secret. No se sobrescribieron las credenciales locales de Supabase.
+- HTTP anónimo 200 y contextos nuevos de navegador sin sesión de Vercel. Suite alojada 16/16 E2E y 5/5 grupos RLS; recorrido adicional conectado con cinco mutaciones y lectura independiente persistidos correctamente. Evidencia en `docs/testing.md`.
+
+La publicación se realizó por CLI desde el repositorio. Para futuros despliegues, revisar el cambio y ejecutar `npx vercel deploy --prod --scope nebula-sur` desde una sesión autorizada. La integración automática de Git con Vercel no está configurada.
+
+Un intento temporal anterior devolvió READY pero respondió 403 al acceso anónimo. No forma parte de la entrega; se sustituyó por la producción estable verificada de arriba. Google Calendar continúa pendiente de credenciales y prueba real.
