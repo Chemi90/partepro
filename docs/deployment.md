@@ -39,7 +39,7 @@ El comando local `npm run db:seed` conserva como destino predeterminado `.local/
 ## Verificación antes de enviar
 
 1. Build y verificaciones locales/CI correctos; revisar el informe de Testing.
-2. Abrir la URL estable de producción en un navegador sin sesión. Debe mostrar PartePro, sin autenticación de Vercel. Revisar Settings → Deployment Protection según el enunciado.
+2. Abrir la URL estable de producción en un navegador sin sesión. Debe mostrar el formulario **Iniciar sesión** de PartePro, sin autenticación de Vercel. **Explorar demo** es una elección secundaria explícita. Revisar Settings → Deployment Protection según el enunciado.
 3. Probar el recorrido demo y el acceso de evaluación conectado, escritorio y móvil.
 4. Comprobar que las APIs de negocio sin sesión devuelven 401, que los POST de otro origen devuelven 403 y que no se cachean respuestas privadas.
 5. Repetir las pruebas de separación entre cuentas en un entorno de preproducción equivalente. Nunca ejecutar el limpiador de fixtures contra producción.
@@ -52,10 +52,10 @@ El comando local `npm run db:seed` conserva como destino predeterminado `.local/
 Publicado y verificado el 27 de noviembre de 2026:
 
 - Producción estable: https://partepro-three.vercel.app
-- Vercel: proyecto `partepro`, equipo `nebula-sur`, plan Hobby, Next.js y Node.js 24, funciones en Irlanda (`dub1`). Deployment `dpl_2uZNwi5A4C3pz2YS3JS4v2X1Li2D`, estado READY y destino production; autenticación de Vercel desactivada para esta demo pública.
+- Vercel: proyecto `partepro`, equipo `nebula-sur`, plan Hobby, Next.js y Node.js 24, funciones en Irlanda (`dub1`). Deployment actual `dpl_8E4JZQJtRFJCSxiBQhaux45TZ9DC`, estado READY y destino production, construido desde `084a9d126b49471f47431657e02a83b7732e5df7`; autenticación de Vercel desactivada para esta app pública.
 - Supabase: proyecto nuevo `partepro` (`qfwlreltnodhjxywqana`), plan Free, región `eu-west-1`. Migraciones 001–003 aplicadas; registro y usuarios anónimos desactivados, rotación de refresh tokens, longitud mínima 12 y SSL obligatorio para conexiones externas a Postgres comprobados.
 - Credenciales de servidor cargadas en el entorno Production de Vercel; la clave privilegiada se almacena como Secret. No se sobrescribieron las credenciales locales de Supabase.
-- HTTP anónimo 200 y contextos nuevos de navegador sin sesión de Vercel. Suite alojada 16/16 E2E y 5/5 grupos RLS; recorrido adicional conectado con cinco mutaciones y lectura independiente persistidos correctamente. Evidencia en `docs/testing.md`.
+- HTTP anónimo 200 y contextos nuevos de navegador sin sesión de Vercel. La pantalla inicial de login y su sesión real pasan **21/21 E2E** en producción, en escritorio y móvil. La verificación anterior añadió **5/5 grupos RLS** y un recorrido conectado con cinco mutaciones y lectura independiente persistidos correctamente; backend y base de datos no cambiaron en el ajuste de entrada. Evidencia diferenciada en `docs/testing.md`.
 
 La publicación se realizó por CLI desde el repositorio. Para futuros despliegues, revisar el cambio y ejecutar `npx vercel deploy --prod --scope nebula-sur` desde una sesión autorizada. La integración automática de Git con Vercel no está configurada.
 

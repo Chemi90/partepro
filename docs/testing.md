@@ -3,11 +3,17 @@
 ## Estado inicial
 Testing leyó AGENTS.md y publicó `agents/testing/DIRECTRICES.md` antes de la implementación. Develop confirmó su lectura y acordó el contrato de dominio antes de las pruebas.
 
-## Ajuste de entrada mediante login — verificado localmente
+## Ajuste de entrada mediante login — verificado en producción
 
-El nuevo acceso requiere login para cuentas conectadas y una elección explícita para explorar la demo. Testing publicó los criterios antes de la implementación y adaptó la suite a 21 ejecuciones de escritorio/móvil, incluyendo carga inicial neutral, errores genéricos, demo como invitado, sesión restaurada y logout que regresa a login. Las capturas previstas del acceso no contienen credenciales.
+El nuevo acceso requiere login para cuentas conectadas y una elección explícita para explorar la demo. Testing publicó los criterios antes de la implementación y adaptó la suite a 21 ejecuciones de escritorio/móvil, incluyendo carga inicial neutral, errores genéricos, demo como invitado, sesión restaurada y logout que regresa a login. Las capturas del acceso no contienen credenciales.
 
-En esta ronda el Orquestador ejecutó **44 pruebas unitarias aprobadas** (Vitest, 432 ms) y `npm audit`, con **0 vulnerabilidades notificadas**. Build de producción y TypeScript correctos. Testing ejecutó la suite contra ese build y Supabase local: **21/21 E2E aprobados en 40,2 segundos**, sin omisiones. La publicación del nuevo acceso está pendiente; las evidencias de producción siguientes corresponden al flujo anterior.
+En esta ronda el Orquestador ejecutó **44 pruebas unitarias aprobadas** (Vitest, 432 ms) y `npm audit`, con **0 vulnerabilidades notificadas**. Build de producción y TypeScript correctos. Testing ejecutó la suite contra ese build y Supabase local: **21/21 E2E aprobados en 40,2 segundos**, sin omisiones.
+
+Después del despliegue `dpl_8E4JZQJtRFJCSxiBQhaux45TZ9DC`, del commit `084a9d126b49471f47431657e02a83b7732e5df7`, Testing repitió la suite en **https://partepro-three.vercel.app**: **21/21 E2E aprobados en 53,9 segundos**, sin omisiones ni reintentos, el 27 de noviembre de 2026. Se usaron contextos nuevos sin cookies ni sesión de Vercel, credenciales privadas de evaluación y trazas desactivadas. Login, intento inválido, sesión restaurada y logout reales pasan en escritorio y móvil. La raíz pública devuelve 200 con el formulario de acceso; el endpoint de datos sin sesión devuelve 401 y los POST de otro origen 403. Cookies Secure/HttpOnly/SameSite, HSTS y CSP con nonce renovado también pasan.
+
+La revisión visual de las capturas remotas `.local/production/login-desktop.png` y `login-mobile.png` confirma campos vacíos, identidad ausente y controles completos. Reporte en `.local/production/login-first-report/`; resultado resumido sin secretos en `.local/production/login-first-verification.json`. Esta ronda no efectuó mutaciones de negocio remotas ni repitió RLS: el backend y la base de datos no cambiaron. Las evidencias históricas siguientes se conservan por separado.
+
+El Orquestador confirmó también la [ejecución de GitHub Actions del mismo commit](https://github.com/Chemi90/partepro/actions/runs/46014950714), con los trabajos `application` y `database` completados correctamente. Esta evidencia de CI es independiente de los 21 E2E ejecutados contra el alojamiento público.
 
 Comprobaciones nuevas: visitante anónimo ve login con campos vacíos y autocomplete adecuado; mientras GET de sesión está demorado no aparece login, demo ni dashboard; un error de sesión termina en login y alerta; submit queda deshabilitado durante autenticación y devuelve error genérico; demo exige «Explorar demo», muestra «Invitado · Demo» y no autentica; tras recarga se vuelve a elegir demo y se conservan sus datos. El login real, intento inválido, cookies, restauración sin flash, logout y recarga posterior se verificaron tanto en escritorio como en móvil, sin mutaciones de negocio conectadas. Las pruebas con credenciales mantienen las trazas desactivadas.
 
@@ -15,7 +21,7 @@ La primera corrida encontró cuatro fallos de selectores: `getByRole('alert')` t
 
 En CI sin credenciales locales se omiten explícitamente las dos ejecuciones de login real y las dos de estados que requieren la aplicación configurada. Las otras 17 ejecuciones siguen disponibles; las cuatro omitidas sí se ejecutaron con éxito en la instancia local descrita arriba. No se repitió la batería RLS porque no cambió el backend ni la base de datos.
 
-## Producción verificada — 27 de noviembre de 2026
+## Verificación inicial de producción — 27 de noviembre de 2026
 
 Origen comprobado: **https://partepro-three.vercel.app**, en el proyecto nuevo de demostración y con autorización explícita. La batería se ejecutó con contextos de navegador nuevos, sin sesiones de Vercel ni cookies previas.
 
