@@ -107,15 +107,17 @@ const localDay = (date: string | Date) => {
 const localInput = (date: Date) =>
   `${localDay(date)}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 const textFrom = (form: FormData, key: string) => String(form.get(key) ?? "");
+const countLabel = (count: number, singular: string, plural: string) =>
+  `${count} ${count === 1 ? singular : plural}`;
 
 function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <span className="brand">
       <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
-        <rect width="34" height="34" rx="10" fill="#c9eb76" />
+        <rect width="34" height="34" rx="2" fill="#1b3bff" />
         <path
           d="M9 25V9h11a6 6 0 0 1 0 12h-5v4zm6-10h5a1 1 0 0 0 0-2h-5z"
-          fill="#101d33"
+          fill="#ffffff"
         />
       </svg>
       {!compact && (
@@ -178,8 +180,17 @@ function Modal({
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const node = ref.current;
+    const previousFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     node?.showModal();
-    return () => node?.close();
+    return () => {
+      node?.close();
+      if (previousFocus?.isConnected) {
+        previousFocus.focus({ preventScroll: true });
+      }
+    };
   }, [title]);
   return (
     <dialog
@@ -808,7 +819,7 @@ export default function PartePro({
                 <Metric
                   label="Intervenciones abiertas"
                   value={String(activeJobs.length).padStart(2, "0")}
-                  note={`${activeJobs.filter((j) => j.status === "pending").length} pendientes de planificar`}
+                  note={`${countLabel(activeJobs.filter((j) => j.status === "pending").length, "pendiente", "pendientes")} de planificar`}
                   icon={<Wrench size={18} />}
                   accent="teal"
                 />
@@ -1084,7 +1095,12 @@ export default function PartePro({
               <div className="summary-strip">
                 <span>
                   <i className="summary-swatch violet" />
-                  {pendingQuotes.length} pendientes de aceptar
+                  {countLabel(
+                    pendingQuotes.length,
+                    "pendiente",
+                    "pendientes",
+                  )}{" "}
+                  de aceptar
                 </span>
                 <strong>
                   {money(pendingQuotes.reduce((n, q) => n + q.totalCents, 0))}
@@ -1236,11 +1252,12 @@ export default function PartePro({
                       <div>
                         <h3>{tech.name}</h3>
                         <small>
-                          {
+                          {countLabel(
                             dayJobs.filter((j) => j.technicianId === tech.id)
-                              .length
-                          }{" "}
-                          intervenciones
+                              .length,
+                            "intervención",
+                            "intervenciones",
+                          )}
                         </small>
                       </div>
                       <span className="technician-badge">

@@ -20,7 +20,7 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     {
       name: "mobile",
-      testMatch: /workflow\.spec\.ts/,
+      testMatch: /(?:workflow|accessibility)\.spec\.ts/,
       use: { ...devices["Pixel 7"] },
     },
   ],

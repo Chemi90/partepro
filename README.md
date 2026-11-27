@@ -95,3 +95,7 @@ No confundir exportación con sincronización: si el proveedor no está configur
 ## Entrega y seguridad
 
 Consultar [despliegue](docs/deployment.md), [seguridad](SECURITY.md) y [guion de entrega](docs/submission.md). No subir `.env.local`, `.local/`, tokens, contraseñas o claves de servicio. La aplicación no garantiza invulnerabilidad y debe mantenerse actualizada.
+
+## Referencia de diseño
+
+La interfaz sigue el lenguaje visual de [Speed Paradigm](https://www.speedparadigm.com/): fondo papel, negro, azul intenso, tipografía Bricolage Grotesque/Manrope y controles de bordes definidos. La adaptación conserva la marca PartePro y su navegación de gestión. Las fuentes se sirven localmente con sus licencias SIL OFL. Las decisiones y tokens se documentan en [diseño](docs/design.md).

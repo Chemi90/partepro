@@ -3,7 +3,7 @@
 La solicitud solo permite un envío: no enviar el formulario hasta completar la revisión de producción.
 
 - App: URL de producción pública, pendiente de registrar tras despliegue confirmado.
-- Repositorio: enlace de GitHub con acceso para el evaluador.
+- Repositorio público: https://github.com/Chemi90/partepro
 - Cuenta de prueba: cuenta dispatcher de demostración; obtener credenciales de la preparación privada, nunca del README público.
 - Documentación del equipo: AGENTS.md, agents/develop/DEVELOP.md y agents/testing/DIRECTRICES.md.
 

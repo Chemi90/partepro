@@ -22,3 +22,11 @@ Orquestador: revisado directorio vacío y requisito de tres agentes. Elegido Nex
 ## Decisiones de entrega
 
 Sin prometer seguridad absoluta. Demo local identificada; persistencia real verificada por separado. Exportación ICS funcional; Calendar requiere credenciales y comprobación externa. Ningún resultado externo se declara realizado sin confirmación del proveedor.
+
+## Adaptación visual solicitada
+
+El usuario pidió tomar como referencia la web de Speed Paradigm y revisar en segundo plano. Orquestador inspeccionó su HTML/CSS público y extrajo los colores, las familias tipográficas y el tratamiento de titulares y controles. Develop adaptó las cinco vistas a ese sistema visual y sirvió las fuentes localmente con sus licencias. Las decisiones están en `docs/design.md`.
+
+Testing amplió la revisión de interfaz con contraste de controles, navegación por Tab y comportamiento del foco en diálogos. Orquestador revisó las capturas de la aplicación y señaló el recorte de las acciones del formulario en una pantalla de 720 píxeles de altura para su corrección. Los resultados y la repetición de las comprobaciones se registran en `docs/testing.md`.
+
+Develop corrigió el pie recortado (UI-02), la restauración del foco al cerrar diálogos (UI-03) y el contraste del contador de pestañas, también al pasar el cursor (UI-04). Testing comprobó las correcciones y los estados de las cinco vistas: la suite final de escritorio/móvil pasó 16/16 en 41 segundos, incluido el acceso real a Supabase local. Orquestador compiló producción y actualizó la captura del README. La publicación permanente continúa pendiente de conectar Supabase alojado y Vercel; la vista temporal que respondió 403 no se utiliza como entrega.

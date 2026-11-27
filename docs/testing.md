@@ -9,8 +9,19 @@ Testing leyó AGENTS.md y publicó `agents/testing/DIRECTRICES.md` antes de la i
 - `node --env-file=.env.local tests/database/security.mjs`: **16 comprobaciones aprobadas** sobre Supabase local real (Postgres 17, Auth y PostgREST), con usuarios autenticados y dos organizaciones independientes. El script crea y elimina sus propios datos ficticios.
 - E2E inicial: cabeceras y acceso sin sesión, navegación de cinco vistas, teclado y reinicio correctos en escritorio y móvil. El flujo completo pasó después de corregir un selector del propio test (`getByRole('combobox')` en lugar de un `getByLabel` exacto que incluía texto de opciones).
 - Flujo E2E verificado: solicitud → presupuesto → aceptación → agenda → parte finalizado; exportación ICS, texto con HTML tratado como texto y persistencia de la demo tras recarga. Ejecutado en Chromium escritorio y Pixel 7 emulado.
-- Última compilación de producción: **12/12 E2E aprobados en 17,3 segundos**, incluyendo login real de Supabase, cookies HttpOnly/SameSite, sesión conservada al recargar y acceso denegado tras logout. La traza se desactiva en la prueba de login para evitar guardar su contraseña en un artefacto.
+- Primera compilación de producción verificada: **12/12 E2E aprobados en 17,3 segundos**, incluyendo login real de Supabase, cookies HttpOnly/SameSite, sesión conservada al recargar y acceso denegado tras logout. La traza se desactiva en la prueba de login para evitar guardar su contraseña en un artefacto.
 - QA visual de las capturas actualizadas en escritorio y móvil: barra lateral corregida, tipografía legible y sin desbordamiento horizontal de página en las cinco vistas. Capturas locales en `.local/overview-*.png`, `.local/reports-*.png` y `.local/completed-*.png`.
+
+## Revisión del rediseño — 27 de noviembre de 2026
+
+Tras aplicar la nueva tipografía local, colores, navegación y formularios, se ejecutó `PLAYWRIGHT_EXTERNAL_SERVER=1 npm run test:e2e` sobre la compilación de producción final: **16/16 pruebas aprobadas en 41,0 segundos**, sin omisiones. Incluye las 12 comprobaciones anteriores y cuatro ejecuciones adicionales de accesibilidad (dos pruebas en escritorio y móvil). `npm run typecheck` también terminó correctamente.
+
+- Contraste de etiquetas y botones del formulario, navegación, contadores, prioridades y estados de las cinco vistas. Cada filtro se comprueba seleccionado y sin seleccionar, también al pasar el cursor. El cálculo usa los colores renderizados y la composición de transparencias, con mínimo 4,5:1 para texto normal y 3:1 para texto grande; espera a que terminen las transiciones.
+- Recorrido de Tab con foco visible, controles del menú móvil cerrado fuera del recorrido, siete controles del diálogo alcanzables, fondo inerte y devolución del foco al botón original tras Escape. La comprobación distingue el foco del documento del foco en los controles del propio navegador.
+- Botones del pie del formulario completamente dentro del diálogo y del viewport al abrirlo en 1280×720 y Pixel 7. Cuerpo con scroll independiente cuando falta altura.
+- Revisión visual de las cinco vistas, formularios de solicitud y presupuesto, y detalle del parte finalizado. Sin desbordamiento horizontal de página ni errores JavaScript durante el recorrido. Capturas renovadas con animaciones desactivadas en `.local/{overview,requests,quotes,calendar,reports,request-form,quote-form,completed}-{desktop,mobile}.png`.
+
+Se corrigieron y volvieron a probar UI-02, UI-03 y UI-04 descritos abajo. La revisión de contraste cubre los elementos indicados; no constituye una certificación completa de accesibilidad. No se repitió la batería de base de datos porque este rediseño no cambió el backend ni sus migraciones; su evidencia anterior permanece separada.
 
 ## Verificación independiente en GitHub Actions
 
@@ -34,6 +45,18 @@ Corrección del Orquestador: migración `202611270003_persistent_attempt_limit.s
 Reproducción: captura de la vista de resumen en 1280×720. La ayuda y el pie salían del fondo oscuro de la barra fija.
 
 Corrección de Develop: scroll interno y ocultación del panel decorativo cuando falta altura. Captura del último build revisada: ayuda y pie permanecen dentro de la barra. **Corregido y verificado.**
+
+### UI-02 — Medio — Pie del formulario recortado en 720 píxeles de altura
+
+Reproducción: abrir «Nueva solicitud» en 1280×720. Los botones inferiores quedaban parcialmente cortados al abrir el diálogo. Develop separó cabecera y pie del cuerpo desplazable y limitó la altura al viewport. La regresión comprueba los límites completos de ambos botones y el flujo de creación sigue pasando en escritorio y móvil. **Corregido y verificado.**
+
+### UI-03 — Bajo — Escape no devolvía el foco al control original
+
+Reproducción: abrir el formulario y cerrarlo con Escape. El foco quedaba en el documento en lugar de regresar a «Nueva solicitud». Develop conserva el elemento que abre el diálogo y restaura el foco si sigue conectado al DOM. La aserción de foco pasa en escritorio y móvil. **Corregido y verificado.**
+
+### UI-04 — Bajo — Contador de filtro ilegible en estados concretos
+
+Reproducción: en Solicitudes, el contador de «Por revisar» mostraba texto blanco sobre fondo blanco cuando estaba inactivo. La primera corrección reveló además contraste 1,14:1 al seleccionar ese filtro y dejar el cursor encima: la regla hover cambiaba el fondo del botón a neutro, conservando blanco en el contador. Develop separó los colores de contadores activos e inactivos y restringió el hover neutro a filtros sin seleccionar. La auditoría ampliada de todos los filtros, estados y contadores pasa en escritorio y móvil con los mínimos indicados. **Corregido y verificado.**
 
 ### Infraestructura local de pruebas
 

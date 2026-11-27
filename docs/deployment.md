@@ -33,3 +33,5 @@ Para cargar los datos remotos, preparar temporalmente `.env.local` con el proyec
 ## Estado
 
 Las URLs y el estado real del despliegue se registrarán cuando el proveedor confirme la publicación. La existencia de estas instrucciones no significa que el despliegue remoto se haya realizado.
+
+El 27 de noviembre se probó un despliegue temporal de Vercel desde una copia del repositorio sin archivos de entorno. El proveedor devolvió READY, pero la comprobación HTTP anónima y un navegador aislado recibieron 403. Por tanto, esa vista temporal **no se considera una entrega pública válida**. La publicación permanente y Supabase alojado siguen pendientes de conectar las cuentas de los proveedores.
