@@ -25,6 +25,8 @@ Se corrigieron y volvieron a probar UI-02, UI-03 y UI-04 descritos abajo. La rev
 
 ## Verificación independiente en GitHub Actions
 
+La adaptación visual y sus correcciones, commit `55c6a916965090419e583d79ab837885d669419c`, superaron la [ejecución de CI del rediseño](https://github.com/Chemi90/partepro/actions/runs/45977292249): ambos trabajos aprobados, auditoría sin vulnerabilidades notificadas, typecheck, 44 pruebas unitarias, build de producción, 15 E2E aprobados en 40,2 segundos y 16/16 comprobaciones de base de datos sobre una instancia nueva. El E2E de login conectado se omite en CI por falta de credenciales y sí pasó en la suite local de 16/16 descrita arriba.
+
 El commit `3ca806bc488e99278d333bbadf04299bbb81b439` superó la [ejecución de CI](https://github.com/Chemi90/partepro/actions/runs/45973152424) con ambos trabajos correctos:
 
 - [Aplicación](https://github.com/Chemi90/partepro/actions/runs/45973152424/job/140418261641): instalación limpia, auditoría con 0 vulnerabilidades notificadas, typecheck, 44 pruebas unitarias, build de producción y 11 E2E. La prueba de login conectado se omite en ese job porque no dispone de credenciales locales; sí se ejecutó y aprobó en la verificación local descrita arriba.
