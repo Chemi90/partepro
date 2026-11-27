@@ -96,7 +96,7 @@ Los presupuestos se descargan en PDF A4, con datos de empresa y cliente, concept
 
 La exportación `.ics` funciona sin servicios externos. La sincronización con Google Calendar está implementada para un calendario dedicado, mediante una cuenta de servicio con permiso sobre ese calendario. Configurar las variables de `.env.example` y `CALENDAR_ORGANIZATION_ID`. El ID estable del evento evita duplicados y las llamadas no envían invitaciones.
 
-No confundir exportación con sincronización: si el proveedor no está configurado la app lo indica. No se afirma haber validado la integración con Google hasta conectarla y comprobar el evento real.
+La producción está conectada al calendario ficticio **PartePro · Demo**. El 27 de noviembre de 2026 se verificaron creación real, repetición sin duplicados y reprogramación conservando el mismo evento mediante lectura independiente de Google. La cuenta técnica tiene permiso de edición únicamente sobre ese calendario, sin roles IAM de proyecto. Si se instala otra copia sin configurar el proveedor, la app lo indica y conserva la exportación ICS.
 
 ## Entrega y seguridad
 

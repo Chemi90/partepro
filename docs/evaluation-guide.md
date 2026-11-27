@@ -9,10 +9,12 @@ Abrir [la app pública](https://partepro-three.vercel.app). No requiere una cuen
 | 0:00–0:20 | Iniciar sesión y abrir **Solicitudes → Nueva solicitud**. Elegir **Café Botánico**, título «Prueba de evaluación · climatización» y una descripción breve. | Login real, validación del formulario y creación persistente. |
 | 0:20–0:50 | Abrir la solicitud, preparar un presupuesto con **Diagnóstico y desplazamiento** y una unidad de **Mano de obra técnica**. Guardarlo y pulsar **Descargar PDF**. | Subtotal 100,00 €, IVA 21,00 € y total 121,00 €. El PDF recoge cliente, conceptos y cantidades; es un presupuesto, no una factura. |
 | 0:50–1:15 | Aceptar el presupuesto y planificar la intervención con un técnico en un hueco libre. | Transiciones de negocio, asignación y prevención de solapes. |
-| 1:15–1:35 | Abrir la intervención planificada y exportar su cita ICS. Si la conexión está disponible, pulsar **Sincronizar con Google Calendar**. | Exportación utilizable y, cuando está configurada, respuesta real del proveedor. Un segundo envío actualiza el mismo evento. |
+| 1:15–1:35 | Abrir la intervención planificada, exportar su cita ICS y pulsar **Sincronizar con Google Calendar**. | Exportación utilizable y respuesta real del proveedor en el calendario ficticio dedicado. Un segundo envío actualiza el mismo evento. |
 | 1:35–2:00 | Finalizar el parte con un informe breve. Recargar y consultar **Partes de trabajo**. Cerrar sesión. | Persistencia en Supabase, trazabilidad y retorno al formulario de acceso. |
 
 Cada evaluador puede crear su propia solicitud. La cuenta compartida conserva los cambios; las solicitudes iniciales podrían haber avanzado de estado durante otra revisión. Si aparece un conflicto de agenda, seleccionar otro hueco: el conflicto se comprueba también en la base de datos.
+
+La conexión de producción utiliza «PartePro · Demo», sin acceder al calendario personal ni enviar invitaciones. Se conserva una intervención titulada «Demo Calendar · Revisión de climatización» como muestra de la sincronización real verificada. El evaluador no necesita autorizar una cuenta de Google para usar el botón.
 
 ## Explorar sin cuenta
 

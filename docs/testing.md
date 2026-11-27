@@ -3,7 +3,7 @@
 ## Estado inicial
 Testing leyó AGENTS.md y publicó `agents/testing/DIRECTRICES.md` antes de la implementación. Develop confirmó su lectura y acordó el contrato de dominio antes de las pruebas.
 
-## PDF de presupuesto verificado localmente; Calendar pendiente del proveedor
+## PDF de presupuesto y Google Calendar verificados en producción
 
 Testing publicó criterios específicos antes de la implementación y aplicó la habilidad PDF para revisar el documento renderizado. Se mantienen separados los casos sintéticos, las descargas reales y la verificación del proveedor externo.
 
@@ -15,7 +15,17 @@ Testing publicó criterios específicos antes de la implementación y aplicó la
 - **21/21 E2E locales aprobados en 48,0 segundos**, sin omisiones, sobre el build integrado y Supabase real local. Se descargó PDF desde la demo y desde la cuenta conectada en escritorio y móvil; verificados bytes/MIME PDF, A4, nombre seguro, ausencia de acciones/adjuntos, `private no-store`, ID no visible 404 y ausencia de sesión 401. La respuesta autenticada `organizationName` coincide con el nombre completo de la barra lateral, también tras abrir el menú móvil.
 - Los cuatro PDF descargados se extrajeron y renderizaron con Poppler. Texto y presentación coinciden con cliente, solicitud, fecha, conceptos, precios y totales del snapshot esperado; los conectados muestran la organización autenticada. La demo marca datos ficticios y todos aclaran que no son factura. Artefactos `.local/quote-{demo,connected}-{desktop,mobile}.pdf`, valores esperados contiguos y PNG en `.local/pdf-qa/`. No se realizaron mutaciones de negocio conectadas.
 
-Pendiente en esta ronda: comprobar el nuevo despliegue público y verificar Calendar por API externa cuando estén disponibles el calendario dedicado y su autorización. No se considera Calendar conectado a partir de mocks ni de la exportación ICS.
+El 27 de noviembre de 2026, sobre el despliegue de producción `dpl_76G12SU9FScyijo27iugLNH7x3vu`, commit `da5ee950e1af6624d8dd09533f4de42449667ba4`, Testing ejecutó **21/21 E2E remotos aprobados en 59,2 segundos**, sin omisiones, contra **https://partepro-three.vercel.app**. Contextos nuevos de escritorio y móvil, acceso público sin sesión de Vercel, trazas desactivadas y credenciales privadas. Incluye descarga PDF real demo/conectada, fuentes alojadas, coherencia de organización, sesión restaurada, logout y controles HTTP. La suite no efectuó mutaciones de negocio conectadas. Reporte privado en `.local/production/pdf-calendar-report/`.
+
+Los cuatro PDF descargados de producción se extrajeron con Poppler y su texto coincide con los valores esperados guardados: cliente, solicitud, emisor, fecha, conceptos, precios, base, IVA y total. El documento conectado de escritorio se renderizó y revisó visualmente: fuentes incrustadas legibles, caracteres españoles y euro correctos, sin solapes ni recortes, emisor «Clima Norte · Demostración» y total 54,45 €, con el aviso «No constituye una factura». Artefactos en `.local/production/quote-{demo,connected}-{desktop,mobile}.pdf` y render en `.local/production/pdf-qa/quote-connected-desktop-1.png`.
+
+### Calendar: proveedor real y botón de la aplicación
+
+El Orquestador preparó una única intervención ficticia mediante la API de la aplicación y comprobó creación, repetición sin duplicados y reprogramación una hora más tarde manteniendo el mismo ID de evento. El destino es el calendario dedicado **PartePro · Demo**, con autorización explícita y sin asistentes ni invitaciones. Su evidencia separada está en `.local/production/calendar-flow.json`.
+
+Testing realizó una comprobación independiente en **4,8 segundos**: cuatro lecturas a Google Calendar con alcance de solo lectura, antes y después de **una única pulsación** del botón «Sincronizar con Google Calendar» sobre esa misma intervención. La API devolvió 200 y la interfaz confirmó el éxito. En ambas lecturas hay exactamente un evento; se mantienen ID, título, ubicación, descripción, inicio/final, zona `Europe/Madrid` y cero asistentes. Una lectura posterior de workspace confirma que el trabajo de negocio no cambió. Se utilizó una sesión nueva de evaluación; logout 200 y acceso posterior al workspace 401. No se replanificaron ni modificaron otros registros.
+
+Resultado privado sin secretos en `.local/production/calendar-independent.json` y captura revisada en `.local/production/calendar-sync-desktop.png`. Esta evidencia sí verifica la integración autenticada con Google Calendar; se distingue de los mocks y de la exportación ICS. El Orquestador confirmó además [CI del mismo commit](https://github.com/Chemi90/partepro/actions/runs/46021215758), con los trabajos de aplicación y base de datos aprobados.
 
 ## Ajuste de entrada mediante login — verificado en producción
 
@@ -124,7 +134,7 @@ Reproducción: en Solicitudes, el contador de «Por revisar» mostraba texto bla
 
 ### UI-05 — Bajo — La organización conectada conservaba la etiqueta de la demo
 
-Hallazgo del Orquestador: la barra lateral mostraba el nombre fijo de la demo mientras el PDF y la base de datos correspondían a otra organización de evaluación. El endpoint de workspace ahora devuelve `organizationName` mediante consulta con JWT y RLS, y Develop lo representa en la cuenta conectada. Testing confirmó en E2E de escritorio/móvil que API y barra lateral coinciden y, mediante extracción del PDF descargado, que también coincide el emisor del documento. La demo conserva su nombre propio. **Corregido y verificado localmente.**
+Hallazgo del Orquestador: la barra lateral mostraba el nombre fijo de la demo mientras el PDF y la base de datos correspondían a otra organización de evaluación. El endpoint de workspace ahora devuelve `organizationName` mediante consulta con JWT y RLS, y Develop lo representa en la cuenta conectada. Testing confirmó en E2E de escritorio/móvil que API y barra lateral coinciden y, mediante extracción del PDF descargado, que también coincide el emisor del documento. La demo conserva su nombre propio. **Corregido y verificado localmente y en producción.**
 
 ### Infraestructura local de pruebas
 

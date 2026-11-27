@@ -29,6 +29,7 @@ No existe una garantía de invulnerabilidad. Este repositorio incluye controles 
 
 - `.env.local`, `.local/`, tokens, credenciales, trazas y artefactos de pruebas están excluidos de Git.
 - La clave privilegiada de Supabase solo se usa en el módulo de limitación de login y en scripts administrativos. Los endpoints de negocio usan la sesión del usuario y RLS.
+- La clave privada de Google Calendar está configurada como secreto de servidor en Production de Vercel. La cuenta técnica no tiene roles IAM de proyecto; solo acceso writer al calendario ficticio «PartePro · Demo», sin permiso para gestionar su uso compartido. El calendario no es público.
 - No se implementan cargas de archivos en esta versión. No hay almacenamiento público de fotos ni una falsa promesa de análisis de archivos.
 - Usar cuentas de infraestructura con MFA y credenciales de demostración exclusivas. No publicar el usuario administrador del proveedor.
 - El repositorio debe pasar typecheck, tests, E2E, build y auditoría antes de desplegar. Actualizar dependencias y revisar alertas de seguridad periódicamente.
@@ -45,7 +46,7 @@ Consultar `docs/testing.md` para ejecuciones y resultados observados. Probar loc
 
 ## Estado del alojamiento verificado
 
-El 27 de noviembre de 2026 se comprobaron acceso anónimo, cookies de sesión, cabeceras, CSRF y aislamiento RLS en la producción indicada en `docs/deployment.md`. Se activó y confirmó SSL obligatorio para conexiones externas a Postgres. El HTML y los siete scripts referenciados por la página pública no contenían la clave privilegiada de Supabase ni la contraseña de evaluación.
+El 27 de noviembre de 2026 se comprobaron acceso anónimo, cookies de sesión, cabeceras, CSRF y aislamiento RLS en la producción indicada en `docs/deployment.md`. Se activó y confirmó SSL obligatorio para conexiones externas a Postgres. Tras añadir PDF y configurar Calendar, la revisión del HTML y los nueve scripts referenciados por la página pública no encontró la clave privilegiada de Supabase, la clave privada de Google ni la contraseña de evaluación. El historial de Git y el índice también se comprobaron contra los secretos conocidos, sin coincidencias ni archivos privados versionados.
 
 El asesor de Supabase mantiene tres avisos por funciones `SECURITY DEFINER` ejecutables por usuarios autenticados: `apply_workspace_action`, `consume_calendar_rate_limit` y `consume_pdf_rate_limit`. El privilegio es intencional para escrituras transaccionales y contadores privados; fijan `search_path=''`, derivan identidad y empresa de Auth y comprueban permisos. Las reglas de negocio se verifican también en la implementación privada del RPC. No se elimina el aviso debilitando esas validaciones ni concediendo escritura directa sobre las tablas.
 
