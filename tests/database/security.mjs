@@ -214,6 +214,34 @@ try {
     }
     sql(`delete from private.rate_buckets where key in ('login-ip:${args.p_ip}','login-user:${args.p_identity}');`);
   });
+
+  await check("PDF limiter denies anonymous callers and users without membership", async () => {
+    assert.ok((await client().rpc("consume_pdf_rate_limit")).error);
+    assert.ok((await outsider.client.rpc("consume_pdf_rate_limit")).error);
+    assert.equal(Number(sql(`select count(*) from private.rate_buckets where key='pdf:${outsider.id}';`)), 0);
+  });
+
+  await check("PDF quota persists, permits twenty requests, rejects the next and isolates users", async () => {
+    // Avoid crossing a fixed-minute boundary during the short sequence of real
+    // HTTP requests. Waiting is bounded to five seconds and changes no data.
+    const second = Number(sql("select extract(second from clock_timestamp());"));
+    if (second > 55) await new Promise((resolve) => setTimeout(resolve, Math.ceil((60 - second) * 1000) + 50));
+    for (let attempt = 1; attempt <= 21; attempt++) {
+      const result = await ownerA.client.rpc("consume_pdf_rate_limit");
+      assert.equal(result.error, null);
+      assert.equal(result.data, attempt <= 20);
+    }
+    assert.equal(Number(sql(`select count from private.rate_buckets where key='pdf:${ownerA.id}';`)), 21);
+    const technician = await techA.client.rpc("consume_pdf_rate_limit");
+    assert.equal(technician.error, null);
+    assert.equal(technician.data, true);
+    sql(`update public.memberships set role='dispatcher' where user_id='${ownerB.id}';`);
+    const otherUser = await ownerB.client.rpc("consume_pdf_rate_limit");
+    assert.equal(otherUser.error, null);
+    assert.equal(otherUser.data, true);
+    assert.equal(Number(sql(`select count from private.rate_buckets where key='pdf:${ownerB.id}';`)), 1);
+    assert.equal(Number(sql(`select count from private.rate_buckets where key='pdf:${ownerA.id}';`)), 21);
+  });
 } finally {
   sql(`
     begin;
@@ -228,7 +256,7 @@ try {
     delete from public.catalog where org_id in ('${id.orgA}','${id.orgB}');
     delete from public.technicians where org_id in ('${id.orgA}','${id.orgB}');
     delete from public.organizations where id in ('${id.orgA}','${id.orgB}');
-    ${identities.map((userId) => `delete from private.rate_buckets where key in ('mutate:${userId}','attempt:${userId}','calendar:${userId}');`).join("\n")}
+    ${identities.map((userId) => `delete from private.rate_buckets where key in ('mutate:${userId}','attempt:${userId}','calendar:${userId}','pdf:${userId}');`).join("\n")}
     commit;
   `);
   for (const userId of identities) await admin.auth.admin.deleteUser(userId);

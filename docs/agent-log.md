@@ -52,3 +52,13 @@ La suite local pasó 21/21 en 40,2 segundos. Orquestador publicó el commit `084
 ## Credenciales de evaluación solicitadas
 
 El usuario pidió una contraseña fácil de recordar. Orquestador comprobó que la cuenta de evaluación ya existía, pertenecía a la organización ficticia prevista y tenía rol dispatcher; actualizó únicamente su contraseña, conservando el mínimo de 12 caracteres de Auth y los datos y permisos. El manifiesto y el archivo de entrega privados quedaron actualizados. Testing verificó un único login nuevo, lectura autenticada, logout y rechazo 401 posterior, sin modificar datos de negocio. Las credenciales no forman parte del repositorio.
+
+## Presupuestos PDF e integración de calendario
+
+El usuario autorizó preparar las mejoras y la entrega. Testing amplió DIRECTRICES antes de la implementación. Develop añadió PDF A4 con fuentes locales, paginación y descarga accesible; el servidor utiliza la sesión del usuario, RLS y datos persistidos. Orquestador añadió la migración 004 con cuota de 20 descargas por minuto y la aplicó localmente y al proyecto remoto dedicado tras superar las pruebas de base de datos.
+
+Orquestador detectó SEC-02: la primera ruta PDF solo comprobaba el error RPC y no su resultado booleano. Develop corrigió el rechazo 429 cuando la cuota devuelve false y Testing lo verificó. También detectó UI-05: el nombre fijo del lateral no coincidía con el emisor del PDF. Orquestador expuso el nombre de la organización mediante RLS y Develop lo incorporó al lateral; Testing verificó su coincidencia en ambos tamaños de pantalla.
+
+Resultados locales de esta ronda: 59 pruebas unitarias, 18 comprobaciones de seguridad en Supabase, build y auditoría de dependencias sin vulnerabilidades. Testing aprobó 21/21 E2E en 48 segundos y revisó los PDF descargados en escritorio y móvil, tanto demo como conectado; además inspeccionó diez páginas sintéticas de documentos largos. Nueve pruebas de Calendar usan respuestas simuladas y no sustituyen la verificación del proveedor real.
+
+Tras autorizar el usuario Google Cloud, Orquestador creó un proyecto sin facturación y una cuenta técnica sin roles IAM de proyecto. A petición expresa del usuario, creó «PartePro · Demo» en Google Calendar y compartió únicamente ese calendario ficticio con permiso de edición. La lectura independiente con la cuenta técnica confirmó calendario, zona Europe/Madrid, rol writer y cero eventos iniciales. El recorrido real desde la app se verificará tras publicar las variables de servidor; sus resultados se registrarán por separado.

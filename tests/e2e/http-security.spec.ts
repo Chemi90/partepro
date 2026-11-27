@@ -8,6 +8,10 @@ test.describe("HTTP: denegación por defecto", () => {
     const body: unknown = await response.json();
     expect(body).not.toHaveProperty("workspace");
     expect(response.headers()["cache-control"]).toContain("no-store");
+    const pdf = await request.get("/api/quotes/8ce4f297-04cf-40ec-9960-ef95f9516f42/pdf");
+    expect(isRemote ? [401] : [401, 503]).toContain(pdf.status());
+    expect(pdf.headers()["content-type"]).not.toContain("application/pdf");
+    expect(pdf.headers()["cache-control"]).toContain("no-store");
   });
 
   for (const endpoint of ["/api/workspace", "/api/auth", "/api/calendar"]) {

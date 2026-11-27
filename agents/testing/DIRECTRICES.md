@@ -48,5 +48,22 @@ Develop debe leer este documento antes de programar. Testing revisa independient
 - Pruebas reales de RLS y sesión cuando haya Supabase disponible; si no, marcar explícitamente pendiente y no afirmar seguridad verificada en producción.
 - Revisar cambios de seguridad de dependencias antes de desplegar. La ausencia de hallazgos no garantiza invulnerabilidad.
 
+## Exportación de presupuesto PDF
+- «Descargar PDF» debe entregar un archivo PDF real y legible, con MIME/nombre coherentes, en escritorio y móvil; no basta con abrir una vista HTML ni prometer una descarga que no ocurre.
+- Incluir identificador y fecha del presupuesto, cliente, solicitud, conceptos, cantidades, precios, base imponible, IVA y total. Usar los importes enteros en céntimos del presupuesto y sus conceptos guardados; no recalcular desde precios actuales del catálogo ni aceptar importes de la URL.
+- Identificarlo como «Presupuesto» y aclarar que no es una factura. La exportación de demo lleva una marca explícita de datos ficticios/demo. Un documento conectado refleja exclusivamente los registros autorizados que está viendo esa cuenta.
+- Conservar caracteres españoles y símbolo de euro. Textos largos y hasta el máximo de conceptos deben paginarse sin recortes, solapes, totales partidos ni filas ilegibles; cabeceras/pies y numeración coherentes si hay varias páginas.
+- Tratar datos como texto: sin interpretar HTML/JavaScript, acciones PDF ejecutables, adjuntos inesperados ni cargas de recursos externos controladas por el contenido. Nombre de descarga seguro y sin rutas controladas por el usuario.
+- Si hay endpoint de exportación, comprobar sesión y membresía/RLS para el ID solicitado, no fiarse del workspace o cliente enviados por el navegador; no usar claves privilegiadas en el cliente. No persistir PDF ni datos conectados en almacenamiento público.
+- Testing descargará ejemplos demo y conectados, extraerá texto/importes y renderizará páginas para inspección visual. Incluir un caso de textos largos y varios saltos de página sin crear datos de negocio remotos para ello.
+
+## Calendar conectado
+- La demo y la descarga ICS deben identificarse como tales. Solo confirmar «añadido/sincronizado» cuando el proveedor externo haya aceptado la operación real; errores de permisos/configuración/proveedor son visibles y no simulan éxito.
+- Sesión, organización y rol autorizados, intervención existente con planificación válida y destino de calendario fijado por configuración de servidor. Nunca aceptar un calendarId, credenciales o URL de proveedor arbitrarios del navegador.
+- Repetir la sincronización de una intervención no crea eventos duplicados. Una replanificación actualiza el mismo evento o comunica con precisión la limitación. Verificar idempotencia también ante un reintento después de respuesta perdida.
+- Sin asistentes, invitaciones, notificaciones ni correos a terceros. Calendar dedicado a los datos ficticios de evaluación; exportar solo el contenido necesario para la intervención.
+- Credenciales únicamente en servidor, sin repositorio ni trazas. Timeout, límites de frecuencia y tratamiento seguro de errores del proveedor, sin filtrar tokens ni claves.
+- Si hay credenciales y autorización disponibles, Testing contrastará de forma independiente por API externa el evento, horario y ausencia de asistentes/duplicados. No crear cuentas Google ni mutaciones remotas por iniciativa propia; separar explícitamente mocks/unitarias de la verificación real del proveedor.
+
 ## Formato de devolución
 Cada fallo contiene identificador, severidad, reproducción, resultado esperado, resultado observado y comprobación tras corregir. No inventar hallazgos para aparentar iteraciones.

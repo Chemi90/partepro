@@ -6,10 +6,14 @@ import { json, verifyOrigin, readJson, handleError, databaseError } from '@/lib/
 export async function GET() {
   try {
     const { supabase, user, member } = await requireMember();
-    const { data, error } = await supabase.rpc('get_workspace');
+    const [{ data, error }, { data: organization, error: organizationError }] = await Promise.all([
+      supabase.rpc('get_workspace'),
+      supabase.from('organizations').select('name').eq('id', member.org_id).single(),
+    ]);
     if (error) throw databaseError(error.code);
+    if (organizationError || !organization) throw databaseError(organizationError?.code);
     const workspace = workspaceSchema.parse(data);
-    return json({ workspace, role: member.role, technicianId: member.technician_id, user: { email: user.email } });
+    return json({ workspace, organizationName: organization.name, role: member.role, technicianId: member.technician_id, user: { email: user.email } });
   } catch (error) { return handleError(error); }
 }
 

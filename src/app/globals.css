@@ -304,6 +304,7 @@ textarea {
   margin: 30px 0 34px;
 }
 .workspace-monogram {
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
   display: grid;
@@ -321,6 +322,8 @@ textarea {
 }
 .workspace-switch strong {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
   letter-spacing: -0.1px;
   white-space: nowrap;
   color: var(--ink);
@@ -1931,6 +1934,18 @@ main {
   background: var(--paper);
   border-top: 1px solid var(--line);
   border-radius: 0;
+}
+.pdf-download {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.pdf-download-error {
+  max-width: 260px;
+  margin: 8px 0 0;
+  color: #a63825;
+  font-size: 0.8125rem;
+  line-height: 1.6;
 }
 .form-error {
   line-height: 1.6;
@@ -4087,6 +4102,9 @@ main {
     flex: 1;
     min-height: 44px;
     font-size: 0.8125rem;
+  }
+  .modal-actions .pdf-download {
+    flex: 1;
   }
   .form-body label {
     font-size: 0.875rem;

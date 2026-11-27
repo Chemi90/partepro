@@ -3,6 +3,20 @@
 ## Estado inicial
 Testing leyó AGENTS.md y publicó `agents/testing/DIRECTRICES.md` antes de la implementación. Develop confirmó su lectura y acordó el contrato de dominio antes de las pruebas.
 
+## PDF de presupuesto verificado localmente; Calendar pendiente del proveedor
+
+Testing publicó criterios específicos antes de la implementación y aplicó la habilidad PDF para revisar el documento renderizado. Se mantienen separados los casos sintéticos, las descargas reales y la verificación del proveedor externo.
+
+- **9 pruebas de Calendar aprobadas con mocks** (498 ms): configuración, organización y planificación antes de contactar al proveedor; actualización del mismo evento, horario que cruza un cambio de hora, ausencia de asistentes/notificaciones, reintento con ID determinista, carrera 404/409, error de autorización y error del proveedor sin falso éxito. HTTP rechaza sesión ausente (401), técnico (403) e ID no visible (404). No se llamó a Google en estas pruebas.
+- **3 pruebas del generador PDF aprobadas**: PDF A4 válido, precios del snapshot aunque cambie el catálogo, documento largo con veinte conceptos, ausencia de acciones ejecutables/adjuntos, rechazo de importes o relaciones incoherentes y nombre seguro.
+- **3 pruebas HTTP del PDF aprobadas**: sesión obligatoria, ID limitado al snapshot autorizado y cuota agotada rechazada antes de leer o generar el documento. La regresión de la cuota detectó el fallo descrito en SEC-02 antes de su corrección.
+- **18/18 comprobaciones de Supabase local real aprobadas** tras la migración `202611270004_pdf_limit.sql`: las 16 anteriores y dos específicas de PDF. Anónimo y usuario sin membresía no consumen la función; veinte solicitudes permitidas y la siguiente rechazada, contador persistido en 21; técnico permitido y otro dispatcher con cuota independiente. Solo se crearon y limpiaron fixtures locales propios.
+- QA independiente con Poppler: PDF estándar de una página, fixture largo demo de cinco y fixture largo sin marca de cuatro. Inspeccionadas las diez páginas, sin recortes ni solapes de organización/código, tablas, totales o pies. `pdftotext` confirma conceptos, importes guardados, caracteres españoles y euro, fecha en Europe/Madrid, HTML como texto literal y marcado «No constituye una factura»/demo según corresponde. Estos tres documentos son sintéticos; los artefactos quedan en `.local/pdf-qa/`.
+- **21/21 E2E locales aprobados en 48,0 segundos**, sin omisiones, sobre el build integrado y Supabase real local. Se descargó PDF desde la demo y desde la cuenta conectada en escritorio y móvil; verificados bytes/MIME PDF, A4, nombre seguro, ausencia de acciones/adjuntos, `private no-store`, ID no visible 404 y ausencia de sesión 401. La respuesta autenticada `organizationName` coincide con el nombre completo de la barra lateral, también tras abrir el menú móvil.
+- Los cuatro PDF descargados se extrajeron y renderizaron con Poppler. Texto y presentación coinciden con cliente, solicitud, fecha, conceptos, precios y totales del snapshot esperado; los conectados muestran la organización autenticada. La demo marca datos ficticios y todos aclaran que no son factura. Artefactos `.local/quote-{demo,connected}-{desktop,mobile}.pdf`, valores esperados contiguos y PNG en `.local/pdf-qa/`. No se realizaron mutaciones de negocio conectadas.
+
+Pendiente en esta ronda: comprobar el nuevo despliegue público y verificar Calendar por API externa cuando estén disponibles el calendario dedicado y su autorización. No se considera Calendar conectado a partir de mocks ni de la exportación ICS.
+
 ## Ajuste de entrada mediante login — verificado en producción
 
 El nuevo acceso requiere login para cuentas conectadas y una elección explícita para explorar la demo. Testing publicó los criterios antes de la implementación y adaptó la suite a 21 ejecuciones de escritorio/móvil, incluyendo carga inicial neutral, errores genéricos, demo como invitado, sesión restaurada y logout que regresa a login. Las capturas del acceso no contienen credenciales.
@@ -86,6 +100,10 @@ Reproducción: invocar una acción inválida por RPC y consultar el contador ant
 
 Corrección del Orquestador: migración `202611270003_persistent_attempt_limit.sql`, con contador exterior persistente y subtransacción de negocio que revierte las escrituras ante un error. Verificación independiente: el nuevo contador `attempt:` aumenta cuando se rechaza la acción; el intento posterior al umbral es rechazado sin crear datos. **Corregido y verificado.**
 
+### SEC-02 — Medio — El endpoint PDF ignoraba una cuota agotada
+
+Hallazgo del Orquestador durante la implementación: `consume_pdf_rate_limit` devuelve `false` sin error después del umbral, pero la primera versión HTTP solo comprobaba `error` y continuaba leyendo/generando el presupuesto. Testing añadió una regresión que exige 429 y ninguna lectura ni generación posterior; falló con la implementación inicial. Develop añadió la guardia `allowed !== true` antes de `get_workspace`. Las tres pruebas HTTP pasan y la batería real de base de datos confirma el umbral persistente. **Corregido y verificado antes de publicar esta funcionalidad.**
+
 ### UI-01 — Bajo — Sidebar desbordaba en pantallas de poca altura
 
 Reproducción: captura de la vista de resumen en 1280×720. La ayuda y el pie salían del fondo oscuro de la barra fija.
@@ -103,6 +121,10 @@ Reproducción: abrir el formulario y cerrarlo con Escape. El foco quedaba en el 
 ### UI-04 — Bajo — Contador de filtro ilegible en estados concretos
 
 Reproducción: en Solicitudes, el contador de «Por revisar» mostraba texto blanco sobre fondo blanco cuando estaba inactivo. La primera corrección reveló además contraste 1,14:1 al seleccionar ese filtro y dejar el cursor encima: la regla hover cambiaba el fondo del botón a neutro, conservando blanco en el contador. Develop separó los colores de contadores activos e inactivos y restringió el hover neutro a filtros sin seleccionar. La auditoría ampliada de todos los filtros, estados y contadores pasa en escritorio y móvil con los mínimos indicados. **Corregido y verificado.**
+
+### UI-05 — Bajo — La organización conectada conservaba la etiqueta de la demo
+
+Hallazgo del Orquestador: la barra lateral mostraba el nombre fijo de la demo mientras el PDF y la base de datos correspondían a otra organización de evaluación. El endpoint de workspace ahora devuelve `organizationName` mediante consulta con JWT y RLS, y Develop lo representa en la cuenta conectada. Testing confirmó en E2E de escritorio/móvil que API y barra lateral coinciden y, mediante extracción del PDF descargado, que también coincide el emisor del documento. La demo conserva su nombre propio. **Corregido y verificado localmente.**
 
 ### Infraestructura local de pruebas
 

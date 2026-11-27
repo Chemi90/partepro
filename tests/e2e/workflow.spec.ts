@@ -1,7 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { artifactsDirectory, isRemote } from "../support/target";
 import { enterDemo, openDemo } from "../support/ui";
+import { downloadQuotePdf } from "../support/pdf-download";
 
 test.beforeEach(async ({ page }) => {
   await mkdir(artifactsDirectory, { recursive: true });
@@ -72,6 +73,8 @@ test("recorrido completo de solicitud a parte finalizado con persistencia de pes
 
   await navigate(page, "Presupuestos");
   await page.getByRole("button").filter({ has: page.getByRole("heading", { name: title, exact: true }) }).click();
+  await downloadQuotePdf(page, `${artifactsDirectory}/quote-demo-${testInfo.project.name}.pdf`, true);
+  await writeFile(`${artifactsDirectory}/quote-demo-${testInfo.project.name}-expected.json`, JSON.stringify({ title, customer: "Comunidad Olivar 24", subtotalCents: 9000, taxCents: 1890, totalCents: 10890 }));
   await page.getByRole("button", { name: "Registrar aceptación", exact: true }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
 

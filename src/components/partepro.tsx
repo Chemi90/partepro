@@ -53,6 +53,7 @@ import {
 } from "@/lib/domain";
 import { createDemoWorkspace, DEMO_STORAGE_KEY } from "@/lib/demo";
 import AccessScreen from "@/components/access-screen";
+import QuotePdfDownload from "@/components/quote-pdf-download";
 
 type View = "overview" | "requests" | "quotes" | "calendar" | "reports";
 type DialogState =
@@ -71,6 +72,7 @@ type DialogState =
 type Notice = { text: string; tone: "success" | "error" | "info" };
 type RemoteWorkspace = {
   workspace: unknown;
+  organizationName?: string;
   role?: Actor["role"];
   technicianId?: string | null;
   user?: { email?: string };
@@ -275,6 +277,7 @@ export default function PartePro({
   const [mode, setMode] = useState<"demo" | "connected">("demo");
   const [actor, setActor] = useState<Actor>({ role: "technician" });
   const [email, setEmail] = useState("");
+  const [organizationName, setOrganizationName] = useState("Tu organización");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -291,6 +294,12 @@ export default function PartePro({
       technicianId: result.technicianId,
     });
     setEmail(result.user?.email ?? "Cuenta conectada");
+    setOrganizationName(
+      typeof result.organizationName === "string" &&
+        result.organizationName.trim()
+        ? result.organizationName.trim()
+        : "Tu organización",
+    );
     setAccessScreen("workspace");
     setSessionCheckFailed(false);
   }, []);
@@ -373,6 +382,7 @@ export default function PartePro({
     setMode("demo");
     setActor({ role: "dispatcher" });
     setEmail("");
+    setOrganizationName("Tu organización");
     setFormError("");
     setAccessMessage("");
     setNotice(null);
@@ -456,6 +466,7 @@ export default function PartePro({
       setMode("demo");
       setActor({ role: "technician" });
       setEmail("");
+      setOrganizationName("Tu organización");
       setDialog(null);
       setNotice(null);
       setFormError("");
@@ -693,9 +704,17 @@ export default function PartePro({
           </button>
         </div>
         <div className="workspace-switch">
-          <span className="workspace-monogram">N</span>
+          <span className="workspace-monogram">
+            {mode === "demo"
+              ? "N"
+              : Array.from(organizationName)[0]?.toUpperCase()}
+          </span>
           <span>
-            <strong>Nexo Mantenimiento</strong>
+            <strong
+              title={mode === "demo" ? "Nexo Mantenimiento" : organizationName}
+            >
+              {mode === "demo" ? "Nexo Mantenimiento" : organizationName}
+            </strong>
             <small>
               {mode === "demo" ? "Espacio de demostración" : "Tu organización"}
             </small>
@@ -1853,6 +1872,11 @@ function DialogContent(props: DialogProps) {
           {errorNode}
         </div>
         <div className="modal-actions">
+          <QuotePdfDownload
+            workspace={workspace}
+            quoteId={quote.id}
+            mode={props.mode}
+          />
           {relatedJob && (
             <button
               className="button button-secondary"

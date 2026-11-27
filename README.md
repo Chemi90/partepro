@@ -6,6 +6,8 @@ Gestión de mantenimiento para equipos que trabajan dentro y fuera de la oficina
 
 **App pública:** [partepro-three.vercel.app](https://partepro-three.vercel.app). Producción en Vercel Hobby y Supabase Free, sin login de Vercel. La pantalla de entrada permite iniciar sesión con la cuenta privada de evaluación y probar la persistencia real en Supabase. **Explorar demo** es una opción secundaria, explícita y aislada por pestaña.
 
+**Para evaluar la entrega:** [recorrido de dos minutos](docs/evaluation-guide.md), con un presupuesto de ejemplo, comprobación de persistencia y evidencias del trabajo de los tres agentes.
+
 ![Panel de PartePro con datos ficticios](docs/images/partepro-desktop.png)
 
 [Verificación en GitHub Actions](https://github.com/Chemi90/partepro/actions/workflows/verify.yml): pruebas de aplicación y aislamiento en una instancia Supabase efímera.
@@ -24,7 +26,7 @@ Abrir http://127.0.0.1:3000. Iniciar sesión con las credenciales de evaluación
 Recorrido sugerido (2 minutos):
 
 1. En Solicitudes, abrir **El aire del local no enfría** o crear una solicitud.
-2. Preparar un presupuesto con conceptos del catálogo. Los importes e impuestos se calculan automáticamente.
+2. Preparar un presupuesto con conceptos del catálogo. Los importes e impuestos se calculan automáticamente y el presupuesto se puede descargar en PDF.
 3. Aceptarlo para crear una intervención pendiente.
 4. Planificarla para un técnico sin solapar otra cita.
 5. Cerrar el parte con un informe y materiales. Consultar el resultado en Resumen y Partes.
@@ -89,6 +91,8 @@ npm audit --audit-level=high
 Las pruebas de base de datos solo admiten la instancia local específica y crean/limpian sus propios usuarios y empresas. No apuntarlas a producción. La CI ejecuta pruebas de aplicación y Supabase en trabajos separados, sin secretos de producción. Las pruebas E2E conectadas se ejecutan cuando existen las credenciales locales; consultar el informe para su cobertura.
 
 ## Integraciones
+
+Los presupuestos se descargan en PDF A4, con datos de empresa y cliente, conceptos, base, IVA y total. El modo demo marca los documentos como ficticios. Con una cuenta conectada, el servidor obtiene el documento con el JWT del usuario y RLS, comprueba su alcance y limita las descargas a 20 por minuto. Las respuestas son privadas y no se cachean.
 
 La exportación `.ics` funciona sin servicios externos. La sincronización con Google Calendar está implementada para un calendario dedicado, mediante una cuenta de servicio con permiso sobre ese calendario. Configurar las variables de `.env.example` y `CALENDAR_ORGANIZATION_ID`. El ID estable del evento evita duplicados y las llamadas no envían invitaciones.
 

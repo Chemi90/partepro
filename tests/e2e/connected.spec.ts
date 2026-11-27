@@ -1,11 +1,15 @@
 import { expect, test } from "@playwright/test";
-import { isRemote, loadEvaluationAccess, loadRemoteAccess } from "../support/target";
+import { writeFile } from "node:fs/promises";
+import { z } from "zod";
+import { workspaceSchema } from "../../src/lib/domain";
+import { artifactsDirectory, isRemote, loadEvaluationAccess, loadRemoteAccess } from "../support/target";
+import { downloadQuotePdf } from "../support/pdf-download";
 
 const access = loadEvaluationAccess();
 
 test.use({ trace: "off" }); // Auth request bodies contain a private test password.
 
-test("sesión Supabase: login, cookie protegida, recarga y logout", async ({ page, context }) => {
+test("sesión Supabase: login, PDF autorizado, cookie protegida, recarga y logout", async ({ page, context }, testInfo) => {
   test.skip(!access, "Requiere el seed local de demostración y Supabase activo.");
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
@@ -33,6 +37,30 @@ test("sesión Supabase: login, cookie protegida, recarga y logout", async ({ pag
   const data: unknown = await authorized.json();
   expect(data).toHaveProperty("workspace");
   if (isRemote) expect(data).toHaveProperty("role", loadRemoteAccess().expectedRole);
+  const remote = z.object({ organizationName: z.string().min(1), workspace: workspaceSchema }).parse(data);
+  const menu = page.getByRole("button", { name: "Abrir menú", exact: true });
+  if (await menu.isVisible()) await menu.click();
+  const sidebar = page.getByRole("complementary", { name: "Navegación principal" });
+  await expect(sidebar.locator(".workspace-switch strong")).toHaveText(remote.organizationName);
+  await expect(sidebar.locator(".workspace-switch strong")).toBeVisible();
+  await sidebar.getByRole("button", { name: /^Presupuestos/ }).click();
+  const quote = remote.workspace.quotes[0];
+  expect(quote).toBeDefined();
+  await page.getByRole("button").filter({ has: page.getByText(quote.code, { exact: true }) }).click();
+  const pdfResponsePending = page.waitForResponse((response) => response.url().endsWith(`/api/quotes/${quote.id}/pdf`));
+  await downloadQuotePdf(page, `${artifactsDirectory}/quote-connected-${testInfo.project.name}.pdf`, false);
+  const pdfResponse = await pdfResponsePending;
+  expect(pdfResponse.status()).toBe(200);
+  expect(pdfResponse.headers()["content-type"]).toContain("application/pdf");
+  expect(pdfResponse.headers()["cache-control"]).toContain("no-store");
+  expect(pdfResponse.headers()["vary"]).toContain("Cookie");
+  const quoteRequest = remote.workspace.requests.find((entry) => entry.id === quote.requestId)!;
+  const customer = remote.workspace.customers.find((entry) => entry.id === quoteRequest.customerId)!;
+  await writeFile(`${artifactsDirectory}/quote-connected-${testInfo.project.name}-expected.json`, JSON.stringify({ organizationName: remote.organizationName, quote, request: quoteRequest, customer }, null, 2));
+  await page.getByRole("button", { name: "Cerrar diálogo", exact: true }).click();
+  const unavailablePdf = await page.request.get("/api/quotes/8ce4f297-04cf-40ec-9960-ef95f9516f42/pdf");
+  expect(unavailablePdf.status()).toBe(404);
+  expect(unavailablePdf.headers()["content-type"]).not.toContain("application/pdf");
   const storage = await page.evaluate(() => JSON.stringify([Object.entries(sessionStorage), Object.entries(localStorage)]));
   expect(storage.includes(access!.password)).toBe(false);
   expect(storage).not.toMatch(/access_token|refresh_token/);
@@ -60,6 +88,7 @@ test("sesión Supabase: login, cookie protegida, recarga y logout", async ({ pag
   await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Todo bajo control." })).toHaveCount(0);
   expect((await page.request.get("/api/workspace")).status()).toBe(401);
+  expect((await page.request.get(`/api/quotes/${quote.id}/pdf`)).status()).toBe(401);
   await page.reload();
   await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
   await expect(page.getByLabel("Correo electrónico", { exact: true })).toHaveValue("");
