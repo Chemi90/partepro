@@ -21,6 +21,8 @@ Durante esta verificación no se crearon, modificaron ni borraron registros de n
 
 Después de esa batería, Orquestador ejecutó un recorrido separado mediante la API Next.js de producción, autenticado como el evaluador dispatcher. Se crearon y persistieron una solicitud ficticia, su presupuesto, aceptación, planificación y parte finalizado: cinco mutaciones autorizadas, sin llamadas administrativas para el recorrido. Una nueva lectura de `/api/workspace` confirmó solicitud y parte en estado `completed`; tras logout, el acceso devolvió 401. Se conserva un único registro explícito de «Verificación de producción · Datos ficticios», con IDs y resultado en `.local/production/connected-flow.json`. No se borraron registros.
 
+Testing confirmó después el resultado de forma independiente desde una sesión nueva: solicitud y parte `completed`, presupuesto `accepted` y relaciones entre los tres registros correctas. Solo realizó login, GET y logout; evidencia privada sin secretos en `.local/production/persisted-flow-read.json`.
+
 Antes de ese recorrido se activó y consultó SSL obligatorio para conexiones externas a Postgres: `currentConfig.database=true` y `appliedSuccessfully=true`. También se inspeccionaron HTML y siete scripts públicos sin encontrar la clave privilegiada ni la contraseña de evaluación. Los tres avisos del asesor de Supabase y sus motivos están documentados en `SECURITY.md`.
 
 ## Ejecuciones realizadas — 27 de noviembre de 2026
@@ -44,6 +46,8 @@ Tras aplicar la nueva tipografía local, colores, navegación y formularios, se 
 Se corrigieron y volvieron a probar UI-02, UI-03 y UI-04 descritos abajo. La revisión de contraste cubre los elementos indicados; no constituye una certificación completa de accesibilidad. No se repitió la batería de base de datos porque este rediseño no cambió el backend ni sus migraciones; su evidencia anterior permanece separada.
 
 ## Verificación independiente en GitHub Actions
+
+La preparación final de la entrega, commit `34ec4708ae0581e1d4526302f3e901d3c57c60f6`, superó ambos trabajos de [la verificación final de aplicación y base de datos](https://github.com/Chemi90/partepro/actions/runs/46008311348). La versión de aplicación publicada procede de `c2073a2e6f772f1d3b88812137ecc40507906f2e`; los cambios posteriores son documentación de resultados y sincronización del helper E2E, sin cambios del código de la app.
 
 La adaptación visual y sus correcciones, commit `55c6a916965090419e583d79ab837885d669419c`, superaron la [ejecución de CI del rediseño](https://github.com/Chemi90/partepro/actions/runs/45977292249): ambos trabajos aprobados, auditoría sin vulnerabilidades notificadas, typecheck, 44 pruebas unitarias, build de producción, 15 E2E aprobados en 40,2 segundos y 16/16 comprobaciones de base de datos sobre una instancia nueva. El E2E de login conectado se omite en CI por falta de credenciales y sí pasó en la suite local de 16/16 descrita arriba.
 
