@@ -1,0 +1,17 @@
+.env*
+.local/
+.git/
+.codex/
+.github/
+node_modules/
+.next/
+coverage/
+test-results/
+playwright-report/
+tests/
+supabase/
+docs/
+scripts/
+agents/
+*.log
+*.tsbuildinfo

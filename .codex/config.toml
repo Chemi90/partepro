@@ -1,0 +1,11 @@
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+
+[agents.develop]
+description = "Implementa PartePro cumpliendo las directrices y corrige los fallos de Testing."
+config_file = "agents/develop.toml"
+
+[agents.testing]
+description = "Revisor independiente de funcionalidad, seguridad y accesibilidad."
+config_file = "agents/testing.toml"
