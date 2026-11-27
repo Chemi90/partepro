@@ -3,6 +3,18 @@
 ## Estado inicial
 Testing leyó AGENTS.md y publicó `agents/testing/DIRECTRICES.md` antes de la implementación. Develop confirmó su lectura y acordó el contrato de dominio antes de las pruebas.
 
+## Ajuste de entrada mediante login — verificado localmente
+
+El nuevo acceso requiere login para cuentas conectadas y una elección explícita para explorar la demo. Testing publicó los criterios antes de la implementación y adaptó la suite a 21 ejecuciones de escritorio/móvil, incluyendo carga inicial neutral, errores genéricos, demo como invitado, sesión restaurada y logout que regresa a login. Las capturas previstas del acceso no contienen credenciales.
+
+En esta ronda el Orquestador ejecutó **44 pruebas unitarias aprobadas** (Vitest, 432 ms) y `npm audit`, con **0 vulnerabilidades notificadas**. Build de producción y TypeScript correctos. Testing ejecutó la suite contra ese build y Supabase local: **21/21 E2E aprobados en 40,2 segundos**, sin omisiones. La publicación del nuevo acceso está pendiente; las evidencias de producción siguientes corresponden al flujo anterior.
+
+Comprobaciones nuevas: visitante anónimo ve login con campos vacíos y autocomplete adecuado; mientras GET de sesión está demorado no aparece login, demo ni dashboard; un error de sesión termina en login y alerta; submit queda deshabilitado durante autenticación y devuelve error genérico; demo exige «Explorar demo», muestra «Invitado · Demo» y no autentica; tras recarga se vuelve a elegir demo y se conservan sus datos. El login real, intento inválido, cookies, restauración sin flash, logout y recarga posterior se verificaron tanto en escritorio como en móvil, sin mutaciones de negocio conectadas. Las pruebas con credenciales mantienen las trazas desactivadas.
+
+La primera corrida encontró cuatro fallos de selectores: `getByRole('alert')` también encontraba el anunciador vacío de rutas de Next. Se delimitó la búsqueda al contenido principal y el estado conectado al banner visible en móvil; la segunda corrida completa pasó sin cambiar los criterios. No se detectaron defectos de aplicación en esta ronda. Revisión visual de `.local/login-desktop.png` y `.local/login-mobile.png`: acceso legible, controles completos, campos vacíos y sin desbordamiento horizontal.
+
+En CI sin credenciales locales se omiten explícitamente las dos ejecuciones de login real y las dos de estados que requieren la aplicación configurada. Las otras 17 ejecuciones siguen disponibles; las cuatro omitidas sí se ejecutaron con éxito en la instancia local descrita arriba. No se repitió la batería RLS porque no cambió el backend ni la base de datos.
+
 ## Producción verificada — 27 de noviembre de 2026
 
 Origen comprobado: **https://partepro-three.vercel.app**, en el proyecto nuevo de demostración y con autorización explícita. La batería se ejecutó con contextos de navegador nuevos, sin sesiones de Vercel ni cookies previas.

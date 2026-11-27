@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { artifactsDirectory, isRemote } from "../support/target";
+import { enterDemo, openDemo } from "../support/ui";
 
 test.beforeEach(async ({ page }) => {
   await mkdir(artifactsDirectory, { recursive: true });
@@ -29,7 +30,7 @@ async function noOverflow(page: Page) {
 test("resumen y cinco vistas accesibles sin desbordamiento", async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
+  await openDemo(page);
   await expect(page.getByRole("heading", { name: "Todo bajo control." })).toBeVisible();
   await expect(page.getByText("Modo demo", { exact: true })).toBeVisible();
   await noOverflow(page);
@@ -48,7 +49,7 @@ test("recorrido completo de solicitud a parte finalizado con persistencia de pes
   const title = `Revisión QA ${testInfo.project.name}`;
   const description = 'Revisar climatización. <img src=x onerror="window.__qaXss=true">';
   const report = "Conexiones comprobadas, filtro sustituido y equipo funcionando correctamente.";
-  await page.goto("/");
+  await openDemo(page);
   await page.getByRole("button", { name: "Nueva solicitud", exact: true }).click();
   await page.getByRole("combobox", { name: "Cliente", exact: true }).selectOption({ label: "Comunidad Olivar 24" });
   await page.getByLabel("¿Qué necesita el cliente?", { exact: true }).fill(title);
@@ -100,6 +101,7 @@ test("recorrido completo de solicitud a parte finalizado con persistencia de pes
   await expect(page.getByRole("dialog")).not.toBeVisible();
 
   await page.reload();
+  await enterDemo(page);
   await navigate(page, "Partes de trabajo");
   const card = page.getByRole("button").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
   await expect(card).toContainText("Finalizada");
@@ -111,7 +113,7 @@ test("recorrido completo de solicitud a parte finalizado con persistencia de pes
 });
 
 test("demo reiniciable y diálogo operable con teclado", async ({ page }) => {
-  await page.goto("/");
+  await openDemo(page);
   await page.getByRole("button", { name: "Nueva solicitud", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");

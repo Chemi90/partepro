@@ -4,7 +4,7 @@ Gestión de mantenimiento para equipos que trabajan dentro y fuera de la oficina
 
 **Stack:** Next.js 16.4.6 · React 19 · TypeScript estricto · Supabase Auth/Postgres · Zod · Vitest · Playwright.
 
-**App pública:** [partepro-three.vercel.app](https://partepro-three.vercel.app). Producción en Vercel Hobby y Supabase Free; acceso anónimo comprobado sin login de Vercel. La cuenta privada de evaluación permite probar la persistencia real; al abrir la web sin cuenta se muestra la demo por pestaña.
+**App pública:** [partepro-three.vercel.app](https://partepro-three.vercel.app). Producción en Vercel Hobby y Supabase Free, sin login de Vercel. La pantalla de entrada permite iniciar sesión con la cuenta privada de evaluación y probar la persistencia real en Supabase. **Explorar demo** es una opción secundaria, explícita y aislada por pestaña.
 
 ![Panel de PartePro con datos ficticios](docs/images/partepro-desktop.png)
 
@@ -19,7 +19,7 @@ npm ci --ignore-scripts
 npm run dev
 ```
 
-Abrir http://127.0.0.1:3000. La demo funciona sin cuentas ni claves: guarda únicamente datos ficticios en la pestaña. El indicador de modo distingue esa demo del acceso conectado a Supabase. Reiniciar la demo no borra datos remotos.
+Abrir http://127.0.0.1:3000. Iniciar sesión con las credenciales de evaluación para trabajar con Supabase, o elegir **Explorar demo**: esa opción funciona sin cuentas ni claves y guarda únicamente datos ficticios en la pestaña. El indicador de modo distingue la demo del acceso conectado. Reiniciar la demo no borra datos remotos. Cerrar una sesión real devuelve a la pantalla de acceso.
 
 Recorrido sugerido (2 minutos):
 
@@ -41,7 +41,7 @@ npm run db:seed
 npm run dev
 ```
 
-El script de loopback limita API y Postgres a 127.0.0.1, conservando los volúmenes del proyecto. El seeder es aditivo, solo usa datos ficticios y deja las credenciales en `.local/demo-access.json`, excluido de Git. En la app, **Conectar mi cuenta** permite usar esa cuenta. No compartir credenciales administrativas de Supabase.
+El script de loopback limita API y Postgres a 127.0.0.1, conservando los volúmenes del proyecto. El seeder es aditivo, solo usa datos ficticios y deja las credenciales en `.local/demo-access.json`, excluido de Git. Introducirlas en **Iniciar sesión**, en la pantalla de entrada. No compartir credenciales administrativas de Supabase.
 
 Para aplicar migraciones nuevas al entorno local:
 

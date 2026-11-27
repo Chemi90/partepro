@@ -52,6 +52,7 @@ import {
   type Workspace,
 } from "@/lib/domain";
 import { createDemoWorkspace, DEMO_STORAGE_KEY } from "@/lib/demo";
+import AccessScreen from "@/components/access-screen";
 
 type View = "overview" | "requests" | "quotes" | "calendar" | "reports";
 type DialogState =
@@ -231,6 +232,7 @@ async function api<T>(url: string, body?: unknown): Promise<T> {
     method: body === undefined ? "GET" : "POST",
     credentials: "same-origin",
     cache: "no-store",
+    signal: AbortSignal.timeout(20_000),
     headers:
       body === undefined ? undefined : { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -257,6 +259,12 @@ export default function PartePro({
   calendarConfigured: boolean;
 }) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [accessScreen, setAccessScreen] = useState<
+    "checking" | "login" | "workspace"
+  >("checking");
+  const [accessMessage, setAccessMessage] = useState("");
+  const [sessionCheckFailed, setSessionCheckFailed] = useState(false);
+  const [sessionCheckAttempt, setSessionCheckAttempt] = useState(0);
   const [view, setView] = useState<View>("overview");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -265,7 +273,7 @@ export default function PartePro({
   const [formError, setFormError] = useState("");
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<"demo" | "connected">("demo");
-  const [actor, setActor] = useState<Actor>({ role: "dispatcher" });
+  const [actor, setActor] = useState<Actor>({ role: "technician" });
   const [email, setEmail] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState("");
@@ -283,38 +291,39 @@ export default function PartePro({
       technicianId: result.technicianId,
     });
     setEmail(result.user?.email ?? "Cuenta conectada");
+    setAccessScreen("workspace");
+    setSessionCheckFailed(false);
   }, []);
   useEffect(() => {
-    let state = createDemoWorkspace();
-    try {
-      const raw = sessionStorage.getItem(DEMO_STORAGE_KEY);
-      if (raw && raw.length < 2000000) {
-        const parsed = workspaceSchema.safeParse(JSON.parse(raw));
-        if (parsed.success) state = parsed.data;
-      }
-    } catch {
-      /* A blocked or stale local demo never prevents access. */
-    }
-    latest.current = state;
-    setWorkspace(state);
+    let cancelled = false;
+    setAccessScreen("checking");
+    setFormError("");
+    setSessionCheckFailed(false);
     setSelectedDay(localDay(new Date()));
-    if (supabaseConfigured)
-      api<RemoteWorkspace>("/api/workspace")
-        .then(installRemote)
-        .catch((error: unknown) => {
-          if (
-            !(
-              error instanceof Error &&
-              "status" in error &&
-              error.status === 401
-            )
-          )
-            setNotice({
-              text: "No se ha podido cargar la cuenta. Puedes explorar la demo local o volver a conectar.",
-              tone: "info",
-            });
-        });
-  }, [supabaseConfigured, installRemote]);
+    if (!supabaseConfigured) {
+      setAccessScreen("login");
+      return;
+    }
+    api<RemoteWorkspace>("/api/workspace")
+      .then((result) => {
+        if (!cancelled) installRemote(result);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setAccessScreen("login");
+        if (
+          !(error instanceof Error && "status" in error && error.status === 401)
+        ) {
+          setSessionCheckFailed(true);
+          setFormError(
+            "No se ha podido comprobar tu sesión. Puedes volver a intentarlo o iniciar sesión con tu cuenta.",
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseConfigured, installRemote, sessionCheckAttempt]);
   useEffect(() => {
     if (!notice || notice.tone === "error") return;
     const timer = setTimeout(() => setNotice(null), 6000);
@@ -346,6 +355,30 @@ export default function PartePro({
       setDialog(null);
       setFormError("");
     }
+  };
+  const exploreDemo = () => {
+    if (busy) return;
+    let state = createDemoWorkspace();
+    try {
+      const raw = sessionStorage.getItem(DEMO_STORAGE_KEY);
+      if (raw && raw.length < 2000000) {
+        const parsed = workspaceSchema.safeParse(JSON.parse(raw));
+        if (parsed.success) state = parsed.data;
+      }
+    } catch {
+      /* A blocked or stale local demo never prevents explicit exploration. */
+    }
+    latest.current = state;
+    setWorkspace(state);
+    setMode("demo");
+    setActor({ role: "dispatcher" });
+    setEmail("");
+    setFormError("");
+    setAccessMessage("");
+    setNotice(null);
+    setDialog(null);
+    navigate("overview");
+    setAccessScreen("workspace");
   };
   const commit = async (input: Action, success: string, after?: () => void) => {
     if (busy || !latest.current) return;
@@ -388,9 +421,11 @@ export default function PartePro({
   };
   const login = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (busy || !supabaseConfigured) return;
     const form = new FormData(event.currentTarget);
     setBusy(true);
     setFormError("");
+    setAccessMessage("");
     try {
       await api("/api/auth", {
         action: "login",
@@ -401,10 +436,12 @@ export default function PartePro({
       setDialog(null);
       notify("Cuenta conectada. Estás trabajando con tu organización.");
     } catch (error) {
+      const rateLimited =
+        error instanceof Error && "status" in error && error.status === 429;
       setFormError(
-        error instanceof Error
-          ? error.message
-          : "No se ha podido iniciar sesión.",
+        rateLimited
+          ? "Has realizado demasiados intentos. Espera unos minutos antes de volver a intentarlo."
+          : "No se ha podido iniciar sesión. Revisa tus datos e inténtalo de nuevo.",
       );
     } finally {
       setBusy(false);
@@ -414,14 +451,18 @@ export default function PartePro({
     setBusy(true);
     try {
       await api("/api/auth", { action: "logout" });
-      const state = createDemoWorkspace();
-      latest.current = state;
-      setWorkspace(state);
+      latest.current = null;
+      setWorkspace(null);
       setMode("demo");
-      setActor({ role: "dispatcher" });
+      setActor({ role: "technician" });
       setEmail("");
+      setDialog(null);
+      setNotice(null);
+      setFormError("");
+      setSessionCheckFailed(false);
+      setAccessMessage("Has cerrado la sesión.");
       navigate("overview");
-      notify("Sesión cerrada. Ahora estás en la demo local.", "info");
+      setAccessScreen("login");
     } catch {
       notify("No se ha podido cerrar la sesión. Vuelve a intentarlo.", "error");
     } finally {
@@ -483,12 +524,27 @@ export default function PartePro({
     }
   };
 
-  if (!workspace)
+  if (accessScreen === "login") {
+    return (
+      <AccessScreen
+        brand={<Logo />}
+        configured={supabaseConfigured}
+        busy={busy}
+        error={formError}
+        message={accessMessage}
+        canRetrySession={sessionCheckFailed}
+        onSubmit={login}
+        onExplore={exploreDemo}
+        onRetrySession={() => setSessionCheckAttempt((attempt) => attempt + 1)}
+      />
+    );
+  }
+  if (accessScreen === "checking" || !workspace)
     return (
       <div className="app-loading">
         <Logo />
         <div className="loading-bar" />
-        <p>Preparando tu espacio de trabajo…</p>
+        <p role="status">Comprobando tu sesión…</p>
       </div>
     );
   const isManager = actor.role !== "technician";
@@ -730,6 +786,11 @@ export default function PartePro({
             <div className="topbar-divider" />
             <button
               className="account-button"
+              aria-label={
+                mode === "demo"
+                  ? "Invitado · Demo. Conectar mi cuenta"
+                  : `${email}. Cerrar sesión`
+              }
               onClick={() =>
                 mode === "demo" ? open({ type: "login" }) : void logout()
               }
@@ -737,14 +798,12 @@ export default function PartePro({
               title={mode === "demo" ? "Conectar mi cuenta" : "Cerrar sesión"}
             >
               <span className="avatar avatar-user">
-                {mode === "demo" ? "JC" : email.slice(0, 2).toUpperCase()}
+                {mode === "demo" ? "ID" : email.slice(0, 2).toUpperCase()}
               </span>
               <span className="account-label">
-                <strong>
-                  {mode === "demo" ? "José · Coordinación" : email}
-                </strong>
+                <strong>{mode === "demo" ? "Invitado · Demo" : email}</strong>
                 <small>
-                  {mode === "demo" ? "Explorando PartePro" : "Cuenta conectada"}
+                  {mode === "demo" ? "Datos ficticios" : "Cuenta conectada"}
                 </small>
               </span>
               {mode === "connected" ? (

@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from "@playwright/test";
+import { openDemo } from "../support/ui";
 
 async function contrast(locator: Locator) {
   await locator.evaluate(async (element) => {
@@ -45,7 +46,7 @@ async function contrast(locator: Locator) {
 }
 
 test("controles y etiquetas principales conservan contraste legible", async ({ page }) => {
-  await page.goto("/");
+  await openDemo(page);
   const create = page.getByRole("button", { name: "Nueva solicitud", exact: true });
   await expect(create).toBeVisible();
   const primaryContrast = await contrast(create);
@@ -99,7 +100,7 @@ test("controles y etiquetas principales conservan contraste legible", async ({ p
 });
 
 test("Tab mantiene el foco visible y el diálogo lo contiene", async ({ page }) => {
-  await page.goto("/");
+  await openDemo(page);
   await expect(page.getByRole("heading", { name: "Todo bajo control." })).toBeVisible();
   for (let index = 0; index < 12; index++) {
     await page.keyboard.press("Tab");
